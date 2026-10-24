@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+{% load static humanize %}
+
+{% block title %}My Author Dashboard | BSCIC Blog{% endblock title %}
+
+{% block content %}
+<div class="container-medium py-5">
+  
+  <!-- Dashboard Header -->
+  <div class="d-flex flex-wrap justify-content-between align-items-center border-bottom pb-3 mb-4 gap-2">
+    <div>
+      <div class="d-flex align-items-center gap-2">
+        <span class="badge-role">Author Hub</span>
+        <h3 class="fw-bold text-dark mb-0">My Stories & Drafts</h3>
+      </div>
+      <p class="text-muted small mb-0 mt-1">Manage visibility, review approval states, and write new articles.</p>
+    </div>
+    
+    <div class="d-flex gap-2">
+      <a href="{% url 'posts:post_create' %}" class="btn-bscic py-2 px-3 small">
+        <i class="bi bi-pencil-square me-1"></i> Write New Story
+      </a>
+      <a href="{% url 'accounts:profile_edit' %}" class="btn-bscic-outline py-2 px-3 small">
+        <i class="bi bi-person-gear me-1"></i> Edit Profile
+      </a>
+    </div>
+  </div>
+
+  <!-- User Story Performance Summary Counters -->
+  <div class="row g-3 mb-4">
+    <div class="col-sm-6 col-lg-3">
+      <div class="card border-0 shadow-sm p-3 rounded-4 text-center">
+        <div class="text-muted small fw-bold text-uppercase">Total Submissions</div>
+        <h2 class="fw-bold mb-0 text-dark mt-1">{{ total_posts }}</h2>
+        <small class="text-muted">All drafted & live items</small>
+      </div>
+    </div>
+
+    <div class="col-sm-6 col-lg-3">
+      <div class="card border-0 shadow-sm p-3 rounded-4 text-center">
+        <div class="text-muted small fw-bold text-uppercase">Live & Published</div>
+        <h2 class="fw-bold mb-0 text-success mt-1">{{ published_count }}</h2>
+        <small class="text-muted">Visible to all readers</small>
+      </div>
+    </div>
+
+    <div class="col-sm-6 col-lg-3">
+      <div class="card border-0 shadow-sm p-3 rounded-4 text-center">
+        <div class="text-muted small fw-bold text-uppercase">Hidden (Drafts)</div>
+        <h2 class="fw-bold mb-0 text-secondary mt-1">{{ hidden_count }}</h2>
+        <small class="text-muted">Unpublished or hidden</small>
+      </div>
+    </div>
+
+    <div class="col-sm-6 col-lg-3">
+      <div class="card border-0 shadow-sm p-3 rounded-4 text-center">
+        <div class="text-muted small fw-bold text-uppercase">Pending Review</div>
+        <h2 class="fw-bold mb-0 text-warning mt-1">{{ pending_count }}</h2>
+        <small class="text-muted">Awaiting moderator check</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Author Posts Table -->
+  <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+    <div class="card-header bg-white border-bottom p-3">
+      <h6 class="fw-bold mb-0 text-dark">Authored Articles ({{ total_posts }})</h6>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light small text-uppercase">
+          <tr>
+            <th scope="col">Story Title</th>
+            <th scope="col">Category</th>
+            <th scope="col" class="text-center">Visibility</th>
+            <th scope="col" class="text-center">Approval</th>
+            <th scope="col" class="text-center">Visits</th>
+            <th scope="col" class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for post in user_posts %}
+            <tr>
+              <td style="max-width: 320px;">
+                <div class="fw-bold text-dark text-truncate">{{ post.title }}</div>
+                <div class="text-muted small">Updated {{ post.updated_at|naturaltime }}</div>
+              </td>
+              <td>
+                <span class="badge bg-light text-dark border">{{ post.category.name|default:"Uncategorized" }}</span>
+              </td>
+              <td class="text-center">
+                {% if post.status == 'published' %}
+                  <span class="badge bg-success-subtle text-success small">Published</span>
+                {% else %}
+                  <span class="badge bg-secondary-subtle text-secondary small">Hidden (Draft)</span>
+                {% endif %}
+              </td>
+              <td class="text-center">
+                {% if post.is_approved %}
+                  <span class="badge bg-success-subtle text-success small"><i class="bi bi-check-circle me-1"></i>Approved</span>
+                {% else %}
+                  <span class="badge bg-warning-subtle text-warning small"><i class="bi bi-clock me-1"></i>Pending</span>
+                {% endif %}
+              </td>
+              <td class="text-center font-monospace small">
+                {{ post.visit_count|default:"0" }}
+              </td>
+              <td class="text-end">
+                <div class="btn-group btn-group-sm">
+                  <!-- Toggle Visibility (Show/Hide) -->
+                  <form method="POST" action="{% url 'accounts:toggle_post_visibility' post.id %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-light border" title="{% if post.status == 'published' %}Hide Story (Make Draft){% else %}Make Visible (Publish){% endif %}">
+                      {% if post.status == 'published' %}
+                        <i class="bi bi-eye-slash text-muted"></i> Hide
+                      {% else %}
+                        <i class="bi bi-eye text-primary"></i> Show
+                      {% endif %}
+                    </button>
+                  </form>
+
+                  <!-- Edit Post -->
+                  <a href="{% url 'posts:post_edit' post.slug %}" class="btn btn-light border" title="Edit Content">
+                    <i class="bi bi-pencil"></i>
+                  </a>
+
+                  <!-- Delete Post -->
+                  <a href="{% url 'accounts:delete_post_user' post.id %}" class="btn btn-light border text-danger" title="Delete Story">
+                    <i class="bi bi-trash3"></i>
+                  </a>
+                </div>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="6" class="text-center py-5 text-muted">
+                <i class="bi bi-journal-plus fs-2 text-muted d-block mb-2"></i>
+                You haven't written any stories yet.
+                <div class="mt-2">
+                  <a href="{% url 'posts:post_create' %}" class="btn-bscic btn-sm py-1 px-3">Write Your First Story</a>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock content %}

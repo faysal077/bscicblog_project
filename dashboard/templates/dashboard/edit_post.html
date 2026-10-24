@@ -1,0 +1,48 @@
+{% extends 'dashboard/layout.html' %}
+
+{% block title %}Story Controls: {{ post.title }} | BSCIC Dashboard{% endblock %}
+
+{% block dashboard_content %}
+<div class="d-flex align-items-center justify-content-between mb-4 border-bottom pb-3">
+  <div>
+    <h3 class="fw-bold text-dark mb-0">Story Configurations</h3>
+    <p class="text-muted small mb-0">Adjust approvals, featured states, and categorizations.</p>
+  </div>
+  <a href="{% url 'dashboard:manage_posts' %}" class="btn-bscic-outline btn-sm py-1 px-3">
+    <i class="bi bi-arrow-left me-1"></i>Back
+  </a>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4 p-4" style="max-width: 600px;">
+  <div class="mb-4">
+    <label class="small text-muted fw-bold text-uppercase">Target Story</label>
+    <h5 class="fw-bold text-dark">{{ post.title }}</h5>
+    <small class="text-muted">By {{ post.author.full_name|default:post.author.username }}</small>
+  </div>
+
+  <form method="POST">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label class="form-label small fw-semibold text-muted">Category</label>
+      {{ form.category }}
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label small fw-semibold text-muted">Draft / Publication Status</label>
+      {{ form.status }}
+    </div>
+
+    <div class="form-check form-switch mb-3">
+      {{ form.is_approved }}
+      <label class="form-check-label small fw-semibold text-dark ms-2">Is Approved (Publicly visible)</label>
+    </div>
+
+    <div class="form-check form-switch mb-4">
+      {{ form.is_featured }}
+      <label class="form-check-label small fw-semibold text-dark ms-2">Is Featured (Highlighted across top banners)</label>
+    </div>
+
+    <button type="submit" class="btn-bscic py-2 px-4 small">Save Configurations</button>
+  </form>
+</div>
+{% endblock %}

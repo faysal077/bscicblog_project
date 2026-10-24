@@ -1,0 +1,119 @@
+{% extends 'dashboard/layout.html' %}
+{% load humanize %}
+
+{% block title %}Executive Overview | BSCIC Dashboard{% endblock %}
+
+{% block dashboard_content %}
+<!-- Header Bar -->
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+  <div>
+    <h3 class="fw-bold text-dark mb-1">Administrative Overview</h3>
+    <p class="text-muted small mb-0">Platform performance, moderation workflow, and system activity logs.</p>
+  </div>
+  <a href="{% url 'posts:post_create' %}" class="btn-bscic py-2 px-3 small">
+    <i class="bi bi-plus-lg me-1"></i>New Story
+  </a>
+</div>
+
+<!-- Aggregation Stat Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-xl-3">
+    <div class="card border-0 shadow-sm p-3 rounded-4">
+      <div class="text-muted small fw-bold text-uppercase">Pending Approval</div>
+      <div class="d-flex align-items-baseline justify-content-between mt-2">
+        <h2 class="fw-bold mb-0 text-danger">{{ pending_count }}</h2>
+        <i class="bi bi-hourglass-split text-danger fs-3"></i>
+      </div>
+      <small class="text-muted mt-2">Requires moderator review</small>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-3">
+    <div class="card border-0 shadow-sm p-3 rounded-4">
+      <div class="text-muted small fw-bold text-uppercase">Total Stories</div>
+      <div class="d-flex align-items-baseline justify-content-between mt-2">
+        <h2 class="fw-bold mb-0 text-dark">{{ total_posts }}</h2>
+        <i class="bi bi-journal-richtext text-primary fs-3"></i>
+      </div>
+      <small class="text-muted mt-2">Published & draft items</small>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-3">
+    <div class="card border-0 shadow-sm p-3 rounded-4">
+      <div class="text-muted small fw-bold text-uppercase">Registered Members</div>
+      <div class="d-flex align-items-baseline justify-content-between mt-2">
+        <h2 class="fw-bold mb-0 text-dark">{{ total_users }}</h2>
+        <i class="bi bi-people text-success fs-3"></i>
+      </div>
+      <small class="text-muted mt-2">Authors & BSCIC officers</small>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-3">
+    <div class="card border-0 shadow-sm p-3 rounded-4">
+      <div class="text-muted small fw-bold text-uppercase">Newsletter Reach</div>
+      <div class="d-flex align-items-baseline justify-content-between mt-2">
+        <h2 class="fw-bold mb-0 text-dark">{{ total_subscribers }}</h2>
+        <i class="bi bi-envelope-check text-info fs-3"></i>
+      </div>
+      <small class="text-muted mt-2">Verified email subscriptions</small>
+    </div>
+  </div>
+</div>
+
+<!-- Urgent Moderation Review Table -->
+<div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
+  <div class="card-header bg-white border-bottom p-3 d-flex justify-content-between align-items-center">
+    <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-inbox-fill text-danger me-2"></i>Stories Pending Review Queue</h6>
+    <a href="{% url 'dashboard:manage_posts' %}?approved=false" class="small text-decoration-none">View All Pending</a>
+  </div>
+  
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light small text-uppercase">
+        <tr>
+          <th>Title</th>
+          <th>Author</th>
+          <th>Category</th>
+          <th>Submitted</th>
+          <th class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for post in pending_posts %}
+          <tr>
+            <td>
+              <a href="{% url 'posts:post_detail' post.slug %}" class="fw-bold text-dark text-decoration-none" target="_blank">
+                {{ post.title }} <i class="bi bi-box-arrow-up-right small text-muted"></i>
+              </a>
+            </td>
+            <td>
+              <span class="small text-dark">{{ post.author.full_name|default:post.author.username }}</span>
+            </td>
+            <td>
+              <span class="badge bg-light text-dark border">{{ post.category.name|default:"Uncategorized" }}</span>
+            </td>
+            <td class="small text-muted">{{ post.created_at|naturaltime }}</td>
+            <td class="text-end">
+              <a href="{% url 'dashboard:approve_post' post.id %}" class="btn btn-sm btn-success py-1 px-2" title="Approve & Publish">
+                <i class="bi bi-check-lg"></i> Approve
+              </a>
+              <a href="{% url 'dashboard:edit_post' post.id %}" class="btn btn-sm btn-light border py-1 px-2" title="Edit Metadata">
+                <i class="bi bi-pencil"></i>
+              </a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="5" class="text-center py-4 text-muted small">
+              <i class="bi bi-patch-check text-success fs-4 d-block mb-1"></i>
+              Queue is empty! All submitted stories are currently reviewed.
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

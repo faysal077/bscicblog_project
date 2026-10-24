@@ -1,0 +1,25 @@
+{% extends 'dashboard/layout.html' %}
+
+{% block title %}Edit Category: {{ category.name }} | BSCIC Dashboard{% endblock %}
+
+{% block dashboard_content %}
+<div class="d-flex align-items-center justify-content-between mb-4 border-bottom pb-3">
+  <h3 class="fw-bold text-dark mb-0">Update Category</h3>
+  <a href="{% url 'dashboard:manage_categories' %}" class="btn-bscic-outline btn-sm py-1 px-3">Back</a>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4 p-4" style="max-width: 600px;">
+  <form method="POST">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label class="form-label small fw-semibold text-muted">Name</label>
+      {{ form.name }}
+    </div>
+    <div class="mb-4">
+      <label class="form-label small fw-semibold text-muted">Description</label>
+      {{ form.description }}
+    </div>
+    <button type="submit" class="btn-bscic py-2 px-4 small">Update Category</button>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,56 @@
+{% extends 'dashboard/layout.html' %}
+
+{% block title %}Edit Permissions: @{{ target_user.username }} | BSCIC Dashboard{% endblock %}
+
+{% block dashboard_content %}
+<div class="d-flex align-items-center justify-content-between mb-4 border-bottom pb-3">
+  <h3 class="fw-bold text-dark mb-0">Edit User Permissions</h3>
+  <a href="{% url 'dashboard:manage_users' %}" class="btn-bscic-outline btn-sm py-1 px-3">Back</a>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4 p-4" style="max-width: 650px;">
+  <div class="d-flex align-items-center gap-3 mb-4 pb-3 border-bottom">
+    <div class="rounded-circle d-flex align-items-center justify-content-center text-white" style="width: 48px; height: 48px; background: var(--bscic-gradient); font-weight: 700; font-size: 1.2rem;">
+      {{ target_user.username|slice:":1"|upper }}
+    </div>
+    <div>
+      <h5 class="fw-bold mb-0 text-dark">{{ target_user.full_name|default:target_user.username }}</h5>
+      <div class="text-muted small">@{{ target_user.username }} • {{ target_user.email }}</div>
+    </div>
+  </div>
+
+  <form method="POST">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label class="form-label small fw-semibold text-muted">Full Name</label>
+      {{ form.full_name }}
+    </div>
+    <div class="mb-3">
+      <label class="form-label small fw-semibold text-muted">System Role</label>
+      {{ form.role }}
+    </div>
+    <div class="row g-2 mb-3">
+      <div class="col-6">
+        <label class="form-label small fw-semibold text-muted">Designation</label>
+        {{ form.designation }}
+      </div>
+      <div class="col-6">
+        <label class="form-label small fw-semibold text-muted">Department</label>
+        {{ form.department }}
+      </div>
+    </div>
+    <div class="d-flex gap-4 mb-4">
+      <div class="form-check form-switch">
+        {{ form.is_active }}
+        <label class="form-check-label small text-dark ms-2">Account Active</label>
+      </div>
+      <div class="form-check form-switch">
+        {{ form.is_verified }}
+        <label class="form-check-label small text-dark ms-2">Verified Officer Badge</label>
+      </div>
+    </div>
+
+    <button type="submit" class="btn-bscic py-2 px-4 small">Save User Changes</button>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid py-4 px-lg-5">
+  <div class="row g-4">
+    
+    <!-- Admin Sidebar Nav -->
+    <aside class="col-lg-3 col-xl-2">
+      <div class="card border-0 shadow-sm p-3 rounded-4 sticky-top" style="top: 85px;">
+        <div class="d-flex align-items-center gap-2 px-2 py-3 border-bottom mb-3">
+          <div class="rounded-3 d-flex align-items-center justify-content-center text-white" style="width: 36px; height: 36px; background: var(--bscic-gradient);">
+            <i class="bi bi-shield-lock-fill"></i>
+          </div>
+          <div>
+            <div class="fw-bold small text-dark">Executive Panel</div>
+            <div class="text-muted" style="font-size: 0.72rem;">BSCIC Blog Operations</div>
+          </div>
+        </div>
+
+        <nav class="nav flex-column gap-1">
+          <a class="nav-link rounded-3 px-3 py-2 text-dark d-flex align-items-center justify-content-between {% if request.resolver_match.url_name == 'overview' %}bg-light fw-bold text-primary{% endif %}" href="{% url 'dashboard:overview' %}">
+            <span><i class="bi bi-speedometer2 me-2"></i>Overview</span>
+          </a>
+          <a class="nav-link rounded-3 px-3 py-2 text-dark d-flex align-items-center justify-content-between {% if request.resolver_match.url_name == 'manage_posts' %}bg-light fw-bold text-primary{% endif %}" href="{% url 'dashboard:manage_posts' %}">
+            <span><i class="bi bi-journal-check me-2"></i>Story Moderation</span>
+          </a>
+          <a class="nav-link rounded-3 px-3 py-2 text-dark d-flex align-items-center justify-content-between {% if request.resolver_match.url_name == 'manage_categories' %}bg-light fw-bold text-primary{% endif %}" href="{% url 'dashboard:manage_categories' %}">
+            <span><i class="bi bi-diagram-3 me-2"></i>Categories</span>
+          </a>
+          <a class="nav-link rounded-3 px-3 py-2 text-dark d-flex align-items-center justify-content-between {% if request.resolver_match.url_name == 'manage_users' %}bg-light fw-bold text-primary{% endif %}" href="{% url 'dashboard:manage_users' %}">
+            <span><i class="bi bi-people me-2"></i>User Accounts</span>
+          </a>
+          <hr class="my-2">
+          <a class="nav-link rounded-3 px-3 py-2 text-muted small" href="{% url 'posts:post_list' %}">
+            <i class="bi bi-arrow-left me-2"></i>Back to Blog
+          </a>
+        </nav>
+      </div>
+    </aside>
+
+    <!-- Main Dynamic Content Workspace -->
+    <main class="col-lg-9 col-xl-10">
+      {% block dashboard_content %}{% endblock %}
+    </main>
+
+  </div>
+</div>
+{% endblock content %}

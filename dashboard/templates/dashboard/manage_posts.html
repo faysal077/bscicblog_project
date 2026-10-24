@@ -1,0 +1,133 @@
+{% extends 'dashboard/layout.html' %}
+
+{% block title %}Story Moderation | BSCIC Dashboard{% endblock %}
+
+{% block dashboard_content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+  <div>
+    <h3 class="fw-bold text-dark mb-1">Story Moderation</h3>
+    <p class="text-muted small mb-0">Control approval queues, feature highlights, and content visibility.</p>
+  </div>
+  <a href="{% url 'posts:post_create' %}" class="btn-bscic py-2 px-3 small">
+    <i class="bi bi-plus-lg me-1"></i>Create Story
+  </a>
+</div>
+
+<!-- Search & Filtering Toolbar -->
+<div class="card border-0 shadow-sm rounded-4 p-3 mb-4">
+  <form method="GET" class="row g-2 align-items-center">
+    <div class="col-md-4">
+      <div class="input-group">
+        <span class="input-group-text bg-light border-0"><i class="bi bi-search text-muted"></i></span>
+        <input type="text" name="q" value="{{ search_query }}" class="form-control bg-light border-0" placeholder="Search by title or author...">
+      </div>
+    </div>
+    <div class="col-md-3">
+      <select name="category" class="form-select bg-light border-0">
+        <option value="">All Categories</option>
+        {% for cat in categories %}
+          <option value="{{ cat.id }}" {% if category_filter == cat.id|stringformat:"s" %}selected{% endif %}>{{ cat.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-3">
+      <select name="approved" class="form-select bg-light border-0">
+        <option value="">All Review States</option>
+        <option value="false" {% if approval_filter == 'false' %}selected{% endif %}>Pending Only</option>
+        <option value="true" {% if approval_filter == 'true' %}selected{% endif %}>Approved Only</option>
+      </select>
+    </div>
+    <div class="col-md-2 d-flex gap-2">
+      <button type="submit" class="btn-bscic w-100 py-2 small">Filter</button>
+      <a href="{% url 'dashboard:manage_posts' %}" class="btn btn-light border py-2 px-3 small" title="Reset Filters"><i class="bi bi-arrow-counterclockwise"></i></a>
+    </div>
+  </form>
+</div>
+
+<!-- Moderation Posts Table -->
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light small text-uppercase">
+        <tr>
+          <th>Story</th>
+          <th>Author</th>
+          <th>Category</th>
+          <th class="text-center">Visits</th>
+          <th class="text-center">Approval</th>
+          <th class="text-center">Featured</th>
+          <th class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for post in page_obj %}
+          <tr>
+            <td style="max-width: 260px;">
+              <a href="{% url 'posts:post_detail' post.slug %}" class="fw-bold text-dark text-decoration-none d-block text-truncate" target="_blank">
+                {{ post.title }}
+              </a>
+              <small class="text-muted">{{ post.created_at|date:"M d, Y" }}</small>
+            </td>
+            <td>
+              <span class="small">{{ post.author.full_name|default:post.author.username }}</span>
+            </td>
+            <td>
+              <span class="badge bg-light text-dark border">{{ post.category.name|default:"General" }}</span>
+            </td>
+            <td class="text-center font-monospace small">{{ post.visit_count }}</td>
+            <td class="text-center">
+              {% if post.is_approved %}
+                <span class="badge bg-success-subtle text-success small">Approved</span>
+              {% else %}
+                <a href="{% url 'dashboard:approve_post' post.id %}" class="btn btn-sm btn-outline-success py-0 px-2" style="font-size: 0.75rem;">
+                  <i class="bi bi-check2"></i> Approve
+                </a>
+              {% endif %}
+            </td>
+            <td class="text-center">
+              <a href="{% url 'dashboard:toggle_feature_post' post.id %}" class="text-decoration-none fs-5">
+                {% if post.is_featured %}
+                  <i class="bi bi-star-fill text-warning" title="Featured Story"></i>
+                {% else %}
+                  <i class="bi bi-star text-muted" title="Mark as Featured"></i>
+                {% endif %}
+              </a>
+            </td>
+            <td class="text-end">
+              <div class="btn-group">
+                <a href="{% url 'dashboard:edit_post' post.id %}" class="btn btn-sm btn-light border py-1 px-2" title="Edit Settings">
+                  <i class="bi bi-sliders"></i>
+                </a>
+                <a href="{% url 'dashboard:delete_post' post.id %}" class="btn btn-sm btn-light border text-danger py-1 px-2" title="Delete">
+                  <i class="bi bi-trash3"></i>
+                </a>
+              </div>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="7" class="text-center py-5 text-muted">No stories found matching your filter criteria.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Pagination Navigation -->
+{% if page_obj.has_other_pages %}
+<div class="d-flex justify-content-center">
+  <nav>
+    <ul class="pagination pagination-sm">
+      {% if page_obj.has_previous %}
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}">Previous</a></li>
+      {% endif %}
+      <li class="page-item active"><span class="page-link">{{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span></li>
+      {% if page_obj.has_next %}
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}">Next</a></li>
+      {% endif %}
+    </ul>
+  </nav>
+</div>
+{% endif %}
+{% endblock %}
