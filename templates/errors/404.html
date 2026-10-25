@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block title %}404 Page Not Found | BSCIC Blog{% endblock title %}
+
+{% block content %}
+<div class="container-medium error-hero">
+  <div>
+    <div class="error-code">404</div>
+    <h2 class="fw-bold text-dark mb-2">Story or Page Not Found</h2>
+    <p class="text-muted mx-auto mb-4" style="max-width: 480px;">
+      The story, publication, or official bulletin you are looking for has been moved, unpublished, or does not exist.
+    </p>
+    <div class="d-flex justify-content-center gap-3">
+      <a href="/" class="btn-bscic">Discover Stories</a>
+      <a href="javascript:history.back()" class="btn-bscic-outline">Go Back</a>
+    </div>
+  </div>
+</div>
+{% endblock content %}

@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block title %}403 Forbidden | BSCIC Blog{% endblock title %}
+
+{% block content %}
+<div class="container-medium error-hero">
+  <div>
+    <div class="error-code">403</div>
+    <h2 class="fw-bold text-dark mb-2">Restricted Department Access</h2>
+    <p class="text-muted mx-auto mb-4" style="max-width: 480px;">
+      You do not have the required permissions or role clearances (BSCIC Officer / Editorial Staff) to access this administrative section.
+    </p>
+    <div class="d-flex justify-content-center gap-3">
+      <a href="/" class="btn-bscic">Return to Feed</a>
+      <a href="{% url 'accounts:profile_detail' user.username %}" class="btn-bscic-outline">Go to Your Profile</a>
+    </div>
+  </div>
+</div>
+{% endblock content %}

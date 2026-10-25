@@ -8,7 +8,9 @@
 <div class="border-bottom bg-white py-2 sticky-top" style="top: 70px; z-index: 1020;">
   <div class="container-medium">
     <div class="d-flex align-items-center gap-2 overflow-x-auto text-nowrap py-1 scrollbar-none">
-      <span class="text-muted small fw-semibold me-1"><i class="bi bi-compass me-1"></i>Sectors:</span>
+      <!-- 
+      <span class="text-muted small fw-semibold me-1"><i class="bi bi-compass me-1"></i>Sectors:</span> 
+      -->
       {% for cat in trending_categories %}
         <a href="{% url 'posts:category_posts' cat.slug %}" class="badge bg-light text-dark border px-3 py-2 text-decoration-none rounded-pill">
           {{ cat.name }} <span class="text-muted ms-1" style="font-size: 0.7rem;">({{ cat.total_posts }})</span>

@@ -1,0 +1,66 @@
+{% load static %}
+<footer class="mt-auto border-top bg-white py-5">
+  <div class="container-medium">
+    <div class="row g-4 justify-content-between">
+      
+      <!-- Corporation Info Column -->
+      <div class="col-lg-4 col-md-6">
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <div class="d-flex align-items-center justify-content-center overflow-hidden" style="width: 40px; height: 40px; border-radius: 8px;">
+            <img 
+                src="{% static 'images/bscic_logo.png' %}" 
+                alt="Logo" 
+                class="w-100 h-100" 
+                style="object-fit: cover;"
+            >
+        </div>
+          <span class="fw-bold fs-5 text-dark">BSCIC Blog</span>
+        </div>
+        <!-- 
+        <p class="text-muted small mb-3" style="line-height: 1.6;">
+          Knowledge sharing platform of Bangladesh Small and Cottage Industries Corporation (BSCIC). Fostering industrial growth, entrepreneurship guides, and SME innovations nationwide.
+        </p> 
+        -->
+        <div class="text-muted small">
+          &copy; {% now "Y" %} BSCIC, Ministry of Industries. All rights reserved.
+        </div>
+      </div>
+
+      <!-- Quick Links -->
+      <!-- 
+      <div class="col-lg-2 col-md-3 col-6">
+        <h6 class="fw-bold text-dark text-uppercase small mb-3">Sectors</h6>
+        <ul class="list-unstyled small d-flex flex-column gap-2">
+          <li><a href="/tag/agro-processing/" class="text-muted">Agro-Processing</a></li>
+          <li><a href="/tag/leather-goods/" class="text-muted">Leather & Footwear</a></li>
+          <li><a href="/tag/handicrafts/" class="text-muted">Handloom & Crafts</a></li>
+          <li><a href="/tag/industrial-parks/" class="text-muted">Industrial Parks</a></li>
+          <li><a href="/tag/women-entrepreneurs/" class="text-muted">Women in SMEs</a></li>
+        </ul>
+      </div> 
+      -->
+
+      <!-- Institutional -->
+      <div class="col-lg-2 col-md-3 col-6">
+        <h6 class="fw-bold text-dark text-uppercase small mb-3">Resources</h6>
+        <ul class="list-unstyled small d-flex flex-column gap-2">
+          <li><a href="https://bscic.gov.bd/" target="_blank" rel="noopener" class="text-muted">Official Portal <i class="bi bi-box-arrow-up-right ms-1"></i></a></li>
+        </ul>
+      </div>
+
+      <!-- Editorial Newsletter -->
+      <!-- 
+      <div class="col-lg-3 col-md-6">
+        <h6 class="fw-bold text-dark text-uppercase small mb-3">Industrial Digest</h6>
+        <p class="text-muted small">Subscribe to weekly articles on government loan policies and cottage industry success stories.</p>
+        <form class="d-flex gap-2" method="POST" action="/newsletter/subscribe/">
+          {% csrf_token %}
+          <input type="email" name="email" class="form-control form-control-sm rounded-pill" placeholder="Enter your email" required>
+          <button type="submit" class="btn-bscic" style="padding: 0.35rem 0.9rem; font-size: 0.85rem;">Join</button>
+        </form>
+      </div> 
+      -->
+
+    </div>
+  </div>
+</footer>

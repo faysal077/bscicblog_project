@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Publications & Directorate Portals | BSCIC Blog{% endblock title %}
+
+{% block content %}
+<div class="container-medium py-5">
+  
+  <!-- Header Banner -->
+  <div class="d-flex flex-wrap align-items-center justify-content-between border-bottom pb-4 mb-5 gap-3">
+    <div>
+      <div class="d-flex align-items-center gap-2 mb-2">
+        <span class="badge-role">Knowledge Ecosystem</span>
+        <span class="text-muted small">• Portals & Bulletins</span>
+      </div>
+      <h2 class="fw-bold text-dark mb-1">Publications & Sector Hubs</h2>
+      <p class="text-muted small mb-0">Discover specialized journals, regional updates, and departmental bulletins from across BSCIC.</p>
+    </div>
+
+    {% if user.is_authenticated and user.is_officer %}
+      <a href="{% url 'publications:publication_create' %}" class="btn-bscic py-2 px-3 small">
+        <i class="bi bi-plus-circle me-1"></i> New Publication
+      </a>
+    {% endif %}
+  </div>
+
+  <!-- Publications Grid -->
+  <div class="row g-4">
+    {% for pub in publications %}
+      <div class="col-md-6 col-lg-4">
+        <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden d-flex flex-column" style="transition: transform 0.2s ease, box-shadow 0.2s ease;">
+          
+          <!-- Banner Header Area -->
+          <div style="height: 110px; background: {% if pub.banner_image %}url('{{ pub.banner_image.url }}') center/cover no-repeat{% else %}var(--bscic-gradient){% endif %}; position: relative;">
+            {% if pub.is_official %}
+              <span class="badge bg-white text-primary position-absolute top-0 end-0 m-2 shadow-sm" style="font-size: 0.7rem; font-weight: 700;">
+                <i class="bi bi-patch-check-fill text-primary me-1"></i>Official Hub
+              </span>
+            {% endif %}
+          </div>
+
+          <div class="card-body p-4 pt-0 d-flex flex-column flex-grow-1 position-relative">
+            
+            <!-- Logo Floating Badge -->
+            <div class="mb-3" style="margin-top: -32px;">
+              {% if pub.logo %}
+                <img src="{{ pub.logo.url }}" alt="{{ pub.name }}" class="rounded-circle border border-2 border-white shadow-sm bg-white" style="width: 64px; height: 64px; object-fit: cover;">
+              {% else %}
+                <div class="rounded-circle border border-2 border-white shadow-sm d-flex align-items-center justify-content-center text-white" style="width: 64px; height: 64px; background: var(--bscic-secondary); font-weight: 800; font-size: 1.2rem;">
+                  {{ pub.name|slice:":1"|upper }}
+                </div>
+              {% endif %}
+            </div>
+
+            <!-- Title & Tagline -->
+            <h5 class="fw-bold mb-1">
+              <a href="{% url 'publications:publication_detail' pub.slug %}" class="text-dark text-decoration-none">
+                {{ pub.name }}
+              </a>
+            </h5>
+
+            {% if pub.tagline %}
+              <p class="text-muted small fw-medium mb-2">{{ pub.tagline }}</p>
+            {% endif %}
+
+            <p class="text-muted small mb-3 text-truncate" style="max-height: 2.8em; line-height: 1.4;">
+              {{ pub.description|default:"Official portal covering policies, industrial estates, and cottage initiatives." }}
+            </p>
+
+            <!-- Metadata & Follow Status -->
+            <div class="mt-auto pt-3 border-top d-flex align-items-center justify-content-between text-muted small">
+              <div class="d-flex align-items-center gap-2">
+                <span><i class="bi bi-file-text me-1"></i>{{ pub.total_stories|default:"0" }}</span>
+                <span>•</span>
+                <span><i class="bi bi-people me-1"></i>{{ pub.total_followers|default:"0" }}</span>
+              </div>
+              <a href="{% url 'publications:publication_detail' pub.slug %}" class="btn-bscic-outline btn-sm py-1 px-3 small">
+                Explore
+              </a>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    {% empty %}
+      <div class="col-12 text-center py-5 bg-light rounded-4">
+        <i class="bi bi-journals text-muted fs-1 mb-2"></i>
+        <h5 class="fw-bold text-dark">No Publications Found</h5>
+        <p class="text-muted small mb-0">No active sector publications or directorate portals have been created yet.</p>
+      </div>
+    {% endfor %}
+  </div>
+
+  <!-- Pagination -->
+  {% if is_paginated %}
+    <div class="d-flex justify-content-center py-5">
+      <nav>
+        <ul class="pagination pagination-sm">
+          {% if page_obj.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
+          {% endif %}
+          <li class="page-item active"><span class="page-link">{{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span></li>
+          {% if page_obj.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
+          {% endif %}
+        </ul>
+      </nav>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock content %}

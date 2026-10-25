@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Manage Editorial Staff - {{ publication.name }} | BSCIC Blog{% endblock title %}
+
+{% block content %}
+<div class="container-medium py-5">
+    <div class="row g-5">
+
+        <!-- Left Column: Current Members Table -->
+        <div class="col-lg-8">
+
+            <div class="d-flex align-items-center justify-content-between border-bottom pb-3 mb-4">
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <a href="{% url 'publications:publication_detail' publication.slug %}"
+                            class="small text-muted text-decoration-none">
+                            <i class="bi bi-arrow-left me-1"></i>{{ publication.name }}
+                        </a>
+                    </div>
+                    <h3 class="fw-bold text-dark mb-0">Editorial Staff & Contributors</h3>
+                </div>
+                <span class="badge-role">{{ members|length }} Active Staff</span>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light small text-uppercase">
+                            <tr>
+                                <th scope="col">Contributor</th>
+                                <th scope="col">Departmental Role</th>
+                                <th scope="col" class="text-center">Editorial Role</th>
+                                <th scope="col" class="text-center">Joined</th>
+                                <th scope="col" class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for member in members %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        {% if member.user.avatar %}
+                                        <img src="{{ member.user.avatar.url }}" alt="{{ member.user.username }}"
+                                            class="rounded-circle border"
+                                            style="width: 36px; height: 36px; object-fit: cover;">
+                                        {% else %}
+                                        <div class="rounded-circle d-flex align-items-center justify-content-center text-white"
+                                            style="width: 36px; height: 36px; min-width: 36px; background: var(--bscic-gradient); font-size: 0.85rem; font-weight: 700;">
+                                            {{ member.user.username|slice:":1"|upper }}
+                                        </div>
+                                        {% endif %}
+                                        <div>
+                                            <div class="fw-bold text-dark">{{
+                                                member.user.full_name|default:member.user.username }}</div>
+                                            <div class="text-muted small" style="font-size: 0.75rem;">@{{
+                                                member.user.username }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <td class="small text-muted">
+                                    {{ member.user.designation|default:"BSCIC Staff" }}
+                                </td>
+
+                                <td class="text-center">
+                                    <span class="badge-role">{{ member.get_role_display }}</span>
+                                </td>
+
+                                <td class="text-center text-muted small">
+                                    {{ member.joined_at|date:"M d, Y" }}
+                                </td>
+
+                                <td class="text-end">
+                                    {% if member.user != publication.owner %}
+                                    <form method="POST"
+                                        onsubmit="return confirm('Remove {{ member.user.username }} from editorial staff?');"
+                                        class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="remove_member">
+                                        <input type="hidden" name="member_id" value="{{ member.id }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger border-0"
+                                            title="Remove member">
+                                            <i class="bi bi-trash3"></i>
+                                        </button>
+                                    </form>
+                                    {% else %}
+                                    <span class="badge bg-light text-muted border">Primary Owner</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-4 text-muted">
+                                    No additional staff members added yet.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Right Column: Add Member Form -->
+        <div class="col-lg-4 border-start-lg ps-lg-4">
+            <div class="sticky-top" style="top: 85px;">
+
+                <div class="card border-0 shadow-sm p-4 rounded-4 mb-4">
+                    <h5 class="fw-bold text-dark mb-2"><i class="bi bi-person-plus-fill me-2 text-primary"></i>Add Staff
+                        Member</h5>
+                    <p class="text-muted small mb-3">Onboard a writer or editor to review drafts and contribute stories
+                        to this publication.</p>
+
+                    <form method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="add_member">
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold text-muted">Select User</label>
+                            {{ form.user }}
+                            {% if form.user.errors %}
+                            <div class="text-danger small mt-1">{{ form.user.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label small fw-semibold text-muted">Publication Role</label>
+                            {{ form.role }}
+                            {% if form.role.errors %}
+                            <div class="text-danger small mt-1">{{ form.role.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <button type="submit" class="btn-bscic w-100 py-2 small">
+                            Assign to Publication
+                        </button>
+                    </form>
+                </div>
+
+                <div class="card border-0 p-3 bg-light rounded-4">
+                    <h6 class="fw-bold text-dark small mb-2"><i class="bi bi-shield-lock me-1 text-primary"></i>Role
+                        Clearances</h6>
+                    <ul class="list-unstyled small text-muted mb-0 d-flex flex-column gap-2" style="font-size: 0.8rem;">
+                        <li><strong>Editor:</strong> Can edit publication settings, review submissions, and manage
+                            writers.</li>
+                        <li><strong>Writer:</strong> Can submit stories to be published under this publication banner.
+                        </li>
+                    </ul>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock content %}

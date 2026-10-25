@@ -1,0 +1,225 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ publication.name }} | BSCIC Blog{% endblock title %}
+{% block meta_description %}{{ publication.tagline|default:publication.description }}{% endblock meta_description %}
+
+{% block content %}
+<!-- Publication Top Hero Banner -->
+<div class="w-100 border-bottom" style="background: {% if publication.banner_image %}url('{{ publication.banner_image.url }}') center/cover no-repeat{% else %}var(--bscic-gradient){% endif %}; height: 220px; position: relative;">
+  <div class="container-medium h-100 d-flex align-items-end pb-3">
+    {% if publication.is_official %}
+      <span class="badge bg-white text-primary shadow-sm" style="font-weight: 700; font-size: 0.8rem;">
+        <i class="bi bi-patch-check-fill text-primary me-1"></i>Official BSCIC Publication
+      </span>
+    {% endif %}
+  </div>
+</div>
+
+<div class="container-medium py-4">
+  <div class="row g-5">
+    
+    <!-- Left Column: Story Feed Inside This Hub -->
+    <div class="col-lg-8">
+      
+      <!-- Publication Branding Header -->
+      <div class="d-flex align-items-center gap-3 border-bottom pb-4 mb-4">
+        {% if publication.logo %}
+          <img src="{{ publication.logo.url }}" alt="{{ publication.name }}" class="rounded-circle border border-2 shadow-sm" style="width: 72px; height: 72px; object-fit: cover;">
+        {% else %}
+          <div class="rounded-circle d-flex align-items-center justify-content-center text-white shadow-sm" style="width: 72px; height: 72px; background: var(--bscic-gradient); font-size: 1.6rem; font-weight: 800;">
+            {{ publication.name|slice:":1"|upper }}
+          </div>
+        {% endif %}
+
+        <div class="flex-grow-1">
+          <h2 class="fw-bold text-dark mb-1">{{ publication.name }}</h2>
+          {% if publication.tagline %}
+            <p class="lead text-muted fs-6 mb-0">{{ publication.tagline }}</p>
+          {% endif %}
+        </div>
+
+        <!-- Management & Staff Controls -->
+        <div class="d-flex align-items-center gap-2">
+          {% if can_manage %}
+            <a href="{% url 'publications:publication_update' publication.slug %}" class="btn-bscic-outline btn-sm py-1 px-3" title="Edit Publication">
+              <i class="bi bi-gear me-1"></i>Settings
+            </a>
+            <a href="{% url 'publications:manage_members' publication.slug %}" class="btn-bscic-outline btn-sm py-1 px-3" title="Manage Editorial Team">
+              <i class="bi bi-people me-1"></i>Staff
+            </a>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Feed Header -->
+      <div class="d-flex align-items-center justify-content-between mb-4">
+        <h5 class="fw-bold text-dark mb-0">Latest Stories from this Hub</h5>
+        <span class="text-muted small">{{ stories|length }} article{{ stories|length|pluralize }}</span>
+      </div>
+
+      {% if stories %}
+        <div class="d-flex flex-column gap-4">
+          {% for story in stories %}
+            <article class="card border-0 border-bottom pb-4" style="border-radius: 0;">
+              <div class="row g-4 align-items-center">
+                
+                <div class="col-md-8">
+                  <!-- Author metadata -->
+                  <div class="d-flex align-items-center gap-2 mb-2">
+                    {% if story.author.avatar %}
+                      <img src="{{ story.author.avatar.url }}" alt="{{ story.author.username }}" class="rounded-circle" style="width: 24px; height: 24px; object-fit: cover;">
+                    {% else %}
+                      <div class="rounded-circle d-flex align-items-center justify-content-center text-white" style="width: 24px; height: 24px; background: var(--bscic-gradient); font-size: 0.75rem;">
+                        {{ story.author.username|slice:":1"|upper }}
+                      </div>
+                    {% endif %}
+                    
+                    <a href="{% url 'accounts:profile_detail' story.author.username %}" class="small text-dark fw-semibold text-decoration-none">
+                      {{ story.author.full_name|default:story.author.username }}
+                    </a>
+                    <span class="text-muted small">• {{ story.published_at|date:"M d, Y" }}</span>
+                  </div>
+
+                  <h5 class="fw-bold mb-2">
+                    <a href="{% url 'posts:post_detail' story.slug %}" class="text-dark text-decoration-none">
+                      {{ story.title }}
+                    </a>
+                  </h5>
+                  {% if story.subtitle %}
+                    <p class="text-muted small mb-2 text-truncate">{{ story.subtitle }}</p>
+                  {% endif %}
+
+                  <div class="d-flex align-items-center gap-3 text-muted small mt-2">
+                    <span>{{ story.reading_time_minutes }} min read</span>
+                    <span><i class="bi bi-eye me-1"></i>{{ story.visit_count }} visits</span>
+                    <span><i class="bi bi-hand-thumbs-up me-1"></i>{{ story.total_claps_count }}</span>
+                    <span><i class="bi bi-chat me-1"></i>{{ story.total_comments_count }}</span>
+                  </div>
+                </div>
+
+                {% if story.featured_image %}
+                  <div class="col-md-4">
+                    <a href="{% url 'posts:post_detail' story.slug %}">
+                      <img src="{{ story.featured_image.url }}" alt="{{ story.title }}" class="img-fluid rounded-4" style="width: 100%; height: 120px; object-fit: cover;">
+                    </a>
+                  </div>
+                {% endif %}
+
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="p-5 text-center bg-light rounded-4">
+          <i class="bi bi-journal-plus fs-1 text-muted mb-2"></i>
+          <h5 class="fw-bold text-dark">No Articles Published Yet</h5>
+          <p class="text-muted small mb-3">Be the first to submit or publish a story to this official portal.</p>
+          {% if user.is_authenticated and user.can_write %}
+            <a href="{% url 'posts:post_create' %}?publication={{ publication.id }}" class="btn-bscic btn-sm py-2 px-3">
+              Draft Story for this Hub
+            </a>
+          {% endif %}
+        </div>
+      {% endif %}
+
+    </div>
+
+    <!-- Right Column: Publication Details & Editorial Staff -->
+    <div class="col-lg-4 border-start-lg ps-lg-4">
+      <div class="sticky-top" style="top: 85px;">
+        
+        <!-- About Box -->
+        <div class="card border-0 p-4 bg-light rounded-4 mb-4">
+          <h6 class="fw-bold text-dark small text-uppercase mb-2">About the Publication</h6>
+          <p class="small text-muted mb-3" style="line-height: 1.6;">
+            {{ publication.description|default:"Official portal for announcements, research studies, and cottage industrial innovations." }}
+          </p>
+
+          <div class="d-flex align-items-center justify-content-between text-muted small border-top pt-2">
+            <span>Primary Owner:</span>
+            <a href="{% url 'accounts:profile_detail' publication.owner.username %}" class="fw-semibold text-dark text-decoration-none">
+              {{ publication.owner.full_name|default:publication.owner.username }}
+            </a>
+          </div>
+        </div>
+
+        <!-- Follow Button Action -->
+        {% if user.is_authenticated %}
+          <button class="btn-bscic w-100 py-2 mb-4" onclick="togglePublicationFollow('{{ publication.id }}')" id="pub-follow-btn">
+            <i class="bi bi-bell me-1"></i> Follow Hub
+          </button>
+        {% endif %}
+
+        <!-- Editorial Team Members List -->
+        <div class="card border-0 shadow-sm p-3 rounded-4">
+          <div class="d-flex align-items-center justify-content-between mb-3">
+            <h6 class="fw-bold text-dark small text-uppercase mb-0">Editorial Staff</h6>
+            {% if can_manage %}
+              <a href="{% url 'publications:manage_members' publication.slug %}" class="small text-decoration-none" style="color: var(--bscic-primary);">Manage</a>
+            {% endif %}
+          </div>
+
+          <div class="d-flex flex-column gap-3">
+            {% for member in editorial_members %}
+              <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-2">
+                  {% if member.user.avatar %}
+                    <img src="{{ member.user.avatar.url }}" alt="{{ member.user.username }}" class="rounded-circle border" style="width: 32px; height: 32px; object-fit: cover;">
+                  {% else %}
+                    <div class="rounded-circle d-flex align-items-center justify-content-center text-white" style="width: 32px; height: 32px; background: var(--bscic-gradient); font-size: 0.8rem; font-weight: 700;">
+                      {{ member.user.username|slice:":1"|upper }}
+                    </div>
+                  {% endif %}
+
+                  <div>
+                    <a href="{% url 'accounts:profile_detail' member.user.username %}" class="fw-semibold text-dark small text-decoration-none d-block lh-1">
+                      {{ member.user.full_name|default:member.user.username }}
+                    </a>
+                    <span class="text-muted" style="font-size: 0.72rem;">{{ member.user.designation|default:"Contributor" }}</span>
+                  </div>
+                </div>
+
+                <span class="badge-role" style="font-size: 0.65rem;">{{ member.get_role_display }}</span>
+              </div>
+            {% empty %}
+              <div class="text-muted small py-2">No additional members listed.</div>
+            {% endfor %}
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock content %}
+
+{% block extra_js %}
+<script>
+  function togglePublicationFollow(pubId) {
+    fetch("/interactions/follow/toggle/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": "{{ csrf_token }}"
+      },
+      body: JSON.stringify({ target_type: "publication", target_id: pubId })
+    })
+    .then(res => res.json())
+    .then(data => {
+      const btn = document.getElementById("pub-follow-btn");
+      if (btn) {
+        if (data.following) {
+          btn.innerHTML = `<i class="bi bi-check2 me-1"></i> Following`;
+          btn.className = "btn-bscic-outline w-100 py-2 mb-4";
+        } else {
+          btn.innerHTML = `<i class="bi bi-bell me-1"></i> Follow Hub`;
+          btn.className = "btn-bscic w-100 py-2 mb-4";
+        }
+      }
+    })
+    .catch(err => console.error(err));
+  }
+</script>
+{% endblock extra_js %}

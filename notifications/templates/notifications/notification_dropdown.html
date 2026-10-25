@@ -1,0 +1,98 @@
+<div class="dropdown">
+  <button class="btn p-0 border-0 position-relative text-muted me-2" type="button" id="notifDropdownBtn" data-bs-toggle="dropdown" aria-expanded="false" onclick="fetchRecentNotifications()">
+    <i class="bi bi-bell fs-5"></i>
+    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none" id="notif-badge">
+      0
+      <span class="visually-hidden">unread notifications</span>
+    </span>
+  </button>
+
+  <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2 p-0 overflow-hidden" aria-labelledby="notifDropdownBtn" style="min-width: 320px; max-width: 360px; border-radius: 14px; z-index: 1050;">
+    <li class="p-3 border-bottom d-flex align-items-center justify-content-between bg-light">
+      <h6 class="fw-bold text-dark mb-0 small">Notifications</h6>
+      <a href="{% url 'notifications:list' %}" class="small text-decoration-none fw-semibold" style="color: var(--bscic-primary);">See All</a>
+    </li>
+
+    <div id="dropdown-notifications-container" style="max-height: 340px; overflow-y: auto;">
+      <div class="text-center py-4 text-muted small" id="notif-loading-indicator">
+        <div class="spinner-border spinner-border-sm text-primary mb-1" role="status"></div>
+        <div>Loading notifications...</div>
+      </div>
+    </div>
+
+    <li class="p-2 border-top text-center bg-white">
+      <button class="btn btn-sm btn-link text-muted text-decoration-none small py-0" onclick="markAllNotificationsReadDropdown()">Mark all read</button>
+    </li>
+  </ul>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    checkUnreadNotificationCount();
+    // Poll unread count every 45 seconds
+    setInterval(checkUnreadNotificationCount, 45000);
+  });
+
+  function checkUnreadNotificationCount() {
+    fetch("/notifications/api/unread-count/")
+      .then(res => res.json())
+      .then(data => {
+        const badge = document.getElementById("notif-badge");
+        if (badge && data.unread_count > 0) {
+          badge.textContent = data.unread_count > 99 ? "99+" : data.unread_count;
+          badge.classList.remove("d-none");
+        } else if (badge) {
+          badge.classList.add("d-none");
+        }
+      })
+      .catch(err => console.error("Notification badge poll error:", err));
+  }
+
+  function fetchRecentNotifications() {
+    const container = document.getElementById("dropdown-notifications-container");
+    fetch("/notifications/api/dropdown/")
+      .then(res => res.json())
+      .then(data => {
+        if (!data.notifications || data.notifications.length === 0) {
+          container.innerHTML = `<div class="text-center py-4 text-muted small">No notifications yet.</div>`;
+          return;
+        }
+
+        let html = "";
+        data.notifications.forEach(item => {
+          html += `
+            <a href="${item.target_url}" class="d-flex align-items-start gap-2 p-3 border-bottom text-decoration-none text-dark ${!item.is_read ? 'bg-light' : ''}">
+              ${item.actor_avatar 
+                ? `<img src="${item.actor_avatar}" class="rounded-circle border" style="width: 32px; height: 32px; object-fit: cover;">`
+                : `<div class="rounded-circle d-flex align-items-center justify-content-center text-white" style="width: 32px; height: 32px; min-width: 32px; background: var(--bscic-gradient); font-size: 0.8rem; font-weight: 700;">${item.actor.charAt(0).toUpperCase()}</div>`
+              }
+              <div class="flex-grow-1 overflow-hidden">
+                <div class="small text-truncate"><strong>${item.actor}</strong> ${item.verb}</div>
+                ${item.target_title ? `<div class="text-muted small text-truncate" style="font-size: 0.72rem;">"${item.target_title}"</div>` : ''}
+                <div class="text-muted" style="font-size: 0.72rem;">${item.created_at}</div>
+              </div>
+            </a>
+          `;
+        });
+        container.innerHTML = html;
+      })
+      .catch(err => {
+        container.innerHTML = `<div class="text-center py-4 text-danger small">Failed to load alerts.</div>`;
+      });
+  }
+
+  function markAllNotificationsReadDropdown() {
+    fetch("/notifications/api/mark-all-read/", {
+      method: "POST",
+      headers: { "X-CSRFToken": "{{ csrf_token }}" }
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        const badge = document.getElementById("notif-badge");
+        if (badge) badge.classList.add("d-none");
+        fetchRecentNotifications();
+      }
+    });
+  }
+</script>

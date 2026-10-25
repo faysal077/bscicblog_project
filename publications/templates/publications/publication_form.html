@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% if form.instance.pk %}Edit {{ form.instance.name }}{% else %}New Publication Hub{% endif %} | BSCIC Blog{% endblock title %}
+
+{% block content %}
+<div class="container-medium py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      
+      <!-- Top Bar -->
+      <div class="d-flex align-items-center justify-content-between border-bottom pb-3 mb-4">
+        <div>
+          <span class="badge-role">Administration Hub</span>
+          <h3 class="fw-bold text-dark mt-2 mb-0">{% if form.instance.pk %}Edit Publication Portal{% else %}Create New Sector Publication{% endif %}</h3>
+          <p class="text-muted small mb-0">Configure publication branding, official designations, and landing assets.</p>
+        </div>
+        {% if form.instance.pk %}
+          <a href="{% url 'publications:publication_detail' form.instance.slug %}" class="btn-bscic-outline btn-sm py-1 px-3">Cancel</a>
+        {% else %}
+          <a href="{% url 'publications:publication_list' %}" class="btn-bscic-outline btn-sm py-1 px-3">Back to Hubs</a>
+        {% endif %}
+      </div>
+
+      <form method="POST" enctype="multipart/form-data" class="needs-validation">
+        {% csrf_token %}
+
+        {% if form.errors %}
+          <div class="alert alert-danger py-2 small mb-4">
+            Please resolve the validation errors below before saving.
+          </div>
+        {% endif %}
+
+        <div class="card border-0 shadow-sm p-4 rounded-4 mb-4">
+          <h5 class="fw-bold text-dark mb-3">Portal Details</h5>
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold text-muted">Publication Name *</label>
+            {{ form.name }}
+            {% if form.name.errors %}
+              <div class="text-danger small mt-1">{{ form.name.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold text-muted">Tagline / Mission Statement</label>
+            {{ form.tagline }}
+            <div class="form-text small">A concise description shown across hub cards and header previews.</div>
+            {% if form.tagline.errors %}
+              <div class="text-danger small mt-1">{{ form.tagline.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold text-muted">Full Description / Scope</label>
+            {{ form.description }}
+            {% if form.description.errors %}
+              <div class="text-danger small mt-1">{{ form.description.errors.0 }}</div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="card border-0 shadow-sm p-4 rounded-4 mb-4">
+          <h5 class="fw-bold text-dark mb-3">Branding & Media Assets</h5>
+
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold text-muted">Logo Badge (Square / Round)</label>
+              {% if form.instance.logo %}
+                <div class="mb-2">
+                  <img src="{{ form.instance.logo.url }}" class="rounded-circle border" style="width: 60px; height: 60px; object-fit: cover;">
+                </div>
+              {% endif %}
+              {{ form.logo }}
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold text-muted">Header Banner Image</label>
+              {% if form.instance.banner_image %}
+                <div class="mb-2">
+                  <img src="{{ form.instance.banner_image.url }}" class="rounded border" style="width: 100%; height: 60px; object-fit: cover;">
+                </div>
+              {% endif %}
+              {{ form.banner_image }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Official Status Toggle (Protected for Officers) -->
+        {% if user.is_officer %}
+          <div class="card border-0 shadow-sm p-4 rounded-4 mb-4" style="background: var(--bscic-gradient-light);">
+            <div class="d-flex align-items-center justify-content-between">
+              <div>
+                <h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check me-1 text-primary"></i>Official Corporation Entity</h6>
+                <p class="small text-muted mb-0">Showcase this publication with an official verified BSCIC emblem badge.</p>
+              </div>
+              <div class="form-check form-switch fs-5">
+                {{ form.is_official }}
+              </div>
+            </div>
+          </div>
+        {% endif %}
+
+        <div class="d-flex justify-content-end gap-2">
+          <a href="{% url 'publications:publication_list' %}" class="btn-bscic-outline py-2 px-4">Cancel</a>
+          <button type="submit" class="btn-bscic py-2 px-4">
+            {% if form.instance.pk %}Save Changes{% else %}Create Publication{% endif %}
+          </button>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+</div>
+{% endblock content %}
