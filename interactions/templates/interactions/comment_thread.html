@@ -1,0 +1,97 @@
+<div class="comment-thread-item border-bottom py-3" id="comment-{{ comment.id }}">
+  <div class="d-flex align-items-start gap-3">
+    
+    <!-- Comment Author Avatar -->
+    {% if comment.author.avatar %}
+      <img src="{{ comment.author.avatar.url }}" alt="{{ comment.author.username }}" class="rounded-circle border" style="width: 36px; height: 36px; object-fit: cover;">
+    {% else %}
+      <div class="rounded-circle d-flex align-items-center justify-content-center text-white" style="width: 36px; height: 36px; min-width: 36px; background: var(--bscic-gradient); font-size: 0.85rem; font-weight: 700;">
+        {{ comment.author.username|slice:":1"|upper }}
+      </div>
+    {% endif %}
+
+    <div class="flex-grow-1">
+      <div class="d-flex align-items-center gap-2 mb-1">
+        <a href="{% url 'accounts:profile_detail' comment.author.username %}" class="fw-semibold text-dark small text-decoration-none">
+          {{ comment.author.full_name|default:comment.author.username }}
+        </a>
+        {% if comment.author.is_officer %}
+          <span class="badge-role" style="font-size: 0.65rem;">BSCIC Officer</span>
+        {% endif %}
+        <span class="text-muted small">• {{ comment.created_at|timesince }} ago</span>
+      </div>
+
+      <!-- Content / Soft Delete Notice -->
+      <div class="comment-body small text-dark mb-2" style="line-height: 1.6;">
+        {% if comment.is_deleted %}
+          <span class="fst-italic text-muted">[This response has been deleted]</span>
+        {% else %}
+          {{ comment.content|linebreaksbr }}
+        {% endif %}
+      </div>
+
+      {% if not comment.is_deleted %}
+        <div class="d-flex align-items-center gap-3 text-muted small">
+          <!-- Claps -->
+          <button class="btn btn-sm btn-light border-0 py-0 px-2 d-flex align-items-center gap-1" onclick="submitCommentClap('{{ comment.id }}')">
+            <i class="bi bi-hand-thumbs-up text-primary"></i>
+            <span id="comment-clap-count-{{ comment.id }}">{{ comment.total_claps_count }}</span>
+          </button>
+
+          <!-- Reply Toggle -->
+          {% if user.is_authenticated %}
+            <button class="btn btn-sm btn-link text-muted text-decoration-none p-0" onclick="toggleReplyBox('{{ comment.id }}')">
+              Reply
+            </button>
+          {% endif %}
+        </div>
+
+        <!-- Inline Reply Form (hidden by default) -->
+        <div class="reply-box mt-3 d-none" id="reply-box-{{ comment.id }}">
+          <form method="POST" action="{% url 'interactions:add_comment' comment.post.id %}">
+            {% csrf_token %}
+            <input type="hidden" name="parent_id" value="{{ comment.id }}">
+            <div class="input-group">
+              <input type="text" name="content" class="form-control form-control-sm" placeholder="Write a reply..." required>
+              <button class="btn-bscic btn-sm px-3" type="submit">Reply</button>
+            </div>
+          </form>
+        </div>
+      {% endif %}
+
+      <!-- Nested Replies -->
+      {% if comment.replies.all %}
+        <div class="nested-replies mt-3 ps-3 border-start">
+          {% for reply in comment.replies.all %}
+            {% include 'interactions/includes/comment_thread.html' with comment=reply %}
+          {% endfor %}
+        </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+
+<script>
+  function toggleReplyBox(commentId) {
+    const box = document.getElementById(`reply-box-${commentId}`);
+    if (box) {
+      box.classList.toggle("d-none");
+    }
+  }
+
+  function submitCommentClap(commentId) {
+    fetch(`/interactions/comments/${commentId}/clap/`, {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": "{{ csrf_token }}"
+      }
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        document.getElementById(`comment-clap-count-${commentId}`).textContent = data.total_comment_claps;
+      }
+    });
+  }
+</script>

@@ -14,8 +14,7 @@ urlpatterns = [
     # Dedicated Frontend Admin Control Panel
     path("dashboard/", include("dashboard.urls")),
 
-    # Publications & Directorate Hubs
-    path("publications/", include("publications.urls")),
+    
 
     # Social Interactions (Claps, Comments, Subscriptions, Bookmarks)
     path("interactions/", include("interactions.urls")),

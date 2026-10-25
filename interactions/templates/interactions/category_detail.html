@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+{% load static humanize %}
+
+{% block title %}{{ category.name }} Stories & Sector Briefings | BSCIC Blog{% endblock title %}
+{% block meta_description %}{{ category.description|default:category.name }}{% endblock meta_description %}
+
+{% block content %}
+<div class="container-medium py-5">
+  
+  <!-- Category Showcase Header -->
+  <div class="card border-0 shadow-sm p-4 p-md-5 rounded-4 mb-5" style="background: var(--bscic-gradient-light); border: 1px solid rgba(26, 13, 129, 0.1) !important;">
+    <div class="d-flex align-items-center gap-2 mb-2">
+      <span class="badge-role">Industrial Sector Hub</span>
+      <span class="text-muted small">• {{ total_category_stories }} Published Stor{{ total_category_stories|pluralize:"y,ies" }}</span>
+    </div>
+    
+    <h1 class="fw-bolder display-6 text-dark mb-2">{{ category.name }}</h1>
+    <p class="text-muted lead fs-6 mb-0" style="max-width: 750px;">
+      {{ category.description|default:"Official policy documentation, SME success cases, technology adoption updates, and cottage sector coverage." }}
+    </p>
+  </div>
+
+  <div class="row g-5">
+    
+    <!-- Main Categorized Feed -->
+    <div class="col-lg-8">
+      
+      <!-- Sorting & Filtering Tabs -->
+      <div class="d-flex align-items-center justify-content-between border-bottom pb-3 mb-4">
+        <h5 class="fw-bold mb-0 text-dark">Category Feeds</h5>
+
+        <div class="btn-group btn-group-sm">
+          <a href="?tab=recent" class="btn btn-outline-secondary {% if active_tab == 'recent' %}active{% endif %}">
+            <i class="bi bi-clock me-1"></i>Recently Added
+          </a>
+          <a href="?tab=popular" class="btn btn-outline-secondary {% if active_tab == 'popular' %}active{% endif %}">
+            <i class="bi bi-fire me-1"></i>Most Popular
+          </a>
+          <a href="?tab=featured" class="btn btn-outline-secondary {% if active_tab == 'featured' %}active{% endif %}">
+            <i class="bi bi-star me-1"></i>Featured
+          </a>
+        </div>
+      </div>
+
+      {% if posts %}
+        <div class="d-flex flex-column gap-4">
+          {% for post in posts %}
+            <article class="card border-0 border-bottom pb-4" style="border-radius: 0;">
+              <div class="row g-4 align-items-center">
+                
+                <div class="col-md-8">
+                  <!-- Author Row -->
+                  <div class="d-flex align-items-center gap-2 mb-2">
+                    {% if post.author.avatar %}
+                      <img src="{{ post.author.avatar.url }}" alt="{{ post.author.username }}" class="rounded-circle" style="width: 24px; height: 24px; object-fit: cover;">
+                    {% else %}
+                      <div class="rounded-circle d-flex align-items-center justify-content-center text-white" style="width: 24px; height: 24px; background: var(--bscic-gradient); font-size: 0.75rem;">
+                        {{ post.author.username|slice:":1"|upper }}
+                      </div>
+                    {% endif %}
+                    
+                    <a href="{% url 'accounts:profile_detail' post.author.username %}" class="small text-dark fw-semibold text-decoration-none">
+                      {{ post.author.full_name|default:post.author.username }}
+                    </a>
+
+                    {% if post.publication %}
+                      <span class="text-muted small">in</span>
+                      <a href="{% url 'publications:publication_detail' post.publication.slug %}" class="small text-dark fw-bold text-decoration-none">
+                        {{ post.publication.name }}
+                      </a>
+                    {% endif %}
+                  </div>
+
+                  <!-- Headline & Subtitle -->
+                  <h4 class="fw-bold mb-2">
+                    <a href="{% url 'posts:post_detail' post.slug %}" class="text-dark text-decoration-none">
+                      {{ post.title }}
+                    </a>
+                  </h4>
+                  {% if post.subtitle %}
+                    <p class="text-muted small mb-3 text-truncate-2">{{ post.subtitle }}</p>
+                  {% endif %}
+
+                  <!-- Metadata Details -->
+                  <div class="d-flex flex-wrap align-items-center justify-content-between text-muted small mt-2">
+                    <div class="d-flex align-items-center gap-2">
+                      <span>{{ post.published_at|date:"M d, Y" }}</span>
+                      <span>•</span>
+                      <span>{{ post.reading_time_minutes }} min read</span>
+                      {% if post.is_featured %}
+                        <span class="badge bg-warning-subtle text-warning-emphasis border" style="font-size: 0.65rem;">Featured</span>
+                      {% endif %}
+                    </div>
+
+                    <div class="d-flex align-items-center gap-3">
+                      <span title="Total Visits"><i class="bi bi-eye me-1"></i>{{ post.visit_count }}</span>
+                      <span title="Claps"><i class="bi bi-hand-thumbs-up me-1"></i>{{ post.total_claps_count }}</span>
+                      <span title="Comments"><i class="bi bi-chat me-1"></i>{{ post.total_comments_count }}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Story Thumbnail Cover -->
+                {% if post.featured_image %}
+                  <div class="col-md-4">
+                    <a href="{% url 'posts:post_detail' post.slug %}">
+                      <img src="{{ post.featured_image.url }}" alt="{{ post.title }}" class="img-fluid rounded-4" style="width: 100%; height: 130px; object-fit: cover;">
+                    </a>
+                  </div>
+                {% endif %}
+
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="p-5 text-center bg-light rounded-4">
+          <i class="bi bi-folder-x fs-1 text-muted mb-2"></i>
+          <h5 class="fw-bold text-dark">No Articles in This Tab</h5>
+          <p class="text-muted small mb-0">No published stories match the "{{ active_tab }}" filter in this category.</p>
+        </div>
+      {% endif %}
+
+    </div>
+
+    <!-- Right Column: Context Information -->
+    <div class="col-lg-4 border-start-lg ps-lg-4">
+      <div class="sticky-top" style="top: 85px;">
+        
+        <div class="card border-0 shadow-sm p-4 rounded-4 mb-4">
+          <h6 class="fw-bold text-dark small text-uppercase mb-2"><i class="bi bi-info-circle me-1 text-primary"></i>Sector Mandate</h6>
+          <p class="small text-muted mb-0" style="line-height: 1.6;">
+            Articles categorized under <strong>{{ category.name }}</strong> encompass technological modernization, SME financing opportunities, and official regional estate updates across Bangladesh.
+          </p>
+        </div>
+
+        <!-- Write Under This Category CTA -->
+        {% if user.is_authenticated and user.can_write %}
+          <div class="p-4 rounded-4 mb-4 text-center" style="background: var(--bscic-gradient); color: #FFFFFF;">
+            <h6 class="fw-bold mb-2">Publish an Industrial Insight</h6>
+            <p class="small text-white-50 mb-3">Contribute specialized knowledge or reports directly to this category.</p>
+            <a href="{% url 'posts:post_create' %}" class="btn btn-sm btn-light text-primary fw-bold py-2 px-3 rounded-pill">
+              Draft for {{ category.name }}
+            </a>
+          </div>
+        {% endif %}
+
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock content %}

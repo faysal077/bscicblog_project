@@ -1,0 +1,209 @@
+{% extends 'base.html' %}
+{% load static humanize %}
+
+{% block title %}BSCIC Blog | Stories, SME Innovations & Cottage Industries{% endblock title %}
+
+{% block content %}
+<!-- Top Trending Categories Bar -->
+<div class="border-bottom bg-white py-2 sticky-top" style="top: 70px; z-index: 1020;">
+  <div class="container-medium">
+    <div class="d-flex align-items-center gap-2 overflow-x-auto text-nowrap py-1 scrollbar-none">
+      <span class="text-muted small fw-semibold me-1"><i class="bi bi-compass me-1"></i>Sectors:</span>
+      {% for cat in trending_categories %}
+        <a href="{% url 'posts:category_posts' cat.slug %}" class="badge bg-light text-dark border px-3 py-2 text-decoration-none rounded-pill">
+          {{ cat.name }} <span class="text-muted ms-1" style="font-size: 0.7rem;">({{ cat.total_posts }})</span>
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<div class="container-medium py-5">
+  
+  <!-- Featured Hero Highlights Grid (if any) -->
+  {% if featured_posts and page_obj.number == 1 and current_sort == 'recent' %}
+    <section class="mb-5">
+      <div class="d-flex align-items-center gap-2 mb-3">
+        <span class="badge-role"><i class="bi bi-star-fill text-warning me-1"></i>Featured Highlights</span>
+      </div>
+      <div class="row g-4">
+        {% for feat in featured_posts %}
+          <div class="{% if forloop.first %}col-lg-7{% else %}col-lg-5{% endif %}">
+            <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden position-relative">
+              {% if feat.featured_image %}
+                <img src="{{ feat.featured_image.url }}" alt="{{ feat.title }}" class="img-fluid w-100" style="height: {% if forloop.first %}280px{% else %}160px{% endif %}; object-fit: cover;">
+              {% else %}
+                <div class="w-100" style="height: {% if forloop.first %}280px{% else %}160px{% endif %}; background: var(--bscic-gradient);"></div>
+              {% endif %}
+              
+              <div class="card-body p-4 d-flex flex-column">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                  <span class="badge bg-light text-dark border small">{{ feat.category.name|default:"Industrial Update" }}</span>
+                  <span class="text-muted small">• {{ feat.reading_time_minutes }} min read</span>
+                </div>
+                <h4 class="fw-bold mb-2">
+                  <a href="{% url 'posts:post_detail' feat.slug %}" class="text-dark text-decoration-none">
+                    {{ feat.title }}
+                  </a>
+                </h4>
+                {% if forloop.first and feat.subtitle %}
+                  <p class="text-muted small mb-3 text-truncate-2">{{ feat.subtitle }}</p>
+                {% endif %}
+                <div class="mt-auto small text-muted">
+                  By <strong>{{ feat.author.full_name|default:feat.author.username }}</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+  {% endif %}
+
+  <!-- Main Feed & Exploration Sidebar -->
+  <div class="row g-5">
+    
+    <!-- Left Column: Story Stream -->
+    <div class="col-lg-8">
+      
+      <!-- Sort Tabs -->
+      <div class="d-flex align-items-center justify-content-between border-bottom pb-3 mb-4">
+        <h4 class="fw-bold mb-0 text-dark">Articles & Briefings</h4>
+        
+        <div class="btn-group btn-group-sm">
+          <a href="?sort=recent" class="btn btn-outline-secondary {% if current_sort == 'recent' %}active{% endif %}">Latest</a>
+          <a href="?sort=top_read" class="btn btn-outline-secondary {% if current_sort == 'top_read' %}active{% endif %}">Most Read</a>
+          <a href="?sort=claps" class="btn btn-outline-secondary {% if current_sort == 'claps' %}active{% endif %}">Highest Clapped</a>
+        </div>
+      </div>
+
+      {% if posts %}
+        <div class="d-flex flex-column gap-4">
+          {% for post in posts %}
+            <article class="card border-0 border-bottom pb-4" style="border-radius: 0;">
+              <div class="row g-4 align-items-center">
+                
+                <div class="col-md-8">
+                  <!-- Author Row -->
+                  <div class="d-flex align-items-center gap-2 mb-2">
+                    {% if post.author.avatar %}
+                      <img src="{{ post.author.avatar.url }}" alt="{{ post.author.username }}" class="rounded-circle" style="width: 24px; height: 24px; object-fit: cover;">
+                    {% else %}
+                      <div class="rounded-circle d-flex align-items-center justify-content-center text-white" style="width: 24px; height: 24px; background: var(--bscic-gradient); font-size: 0.75rem;">
+                        {{ post.author.username|slice:":1"|upper }}
+                      </div>
+                    {% endif %}
+                    
+                    <a href="{% url 'accounts:profile_detail' post.author.username %}" class="small text-dark fw-semibold text-decoration-none">
+                      {{ post.author.full_name|default:post.author.username }}
+                    </a>
+
+                    {% if post.publication %}
+                      <span class="text-muted small">in</span>
+                      <a href="{% url 'publications:publication_detail' post.publication.slug %}" class="small text-dark fw-bold text-decoration-none">
+                        {{ post.publication.name }}
+                      </a>
+                    {% endif %}
+                  </div>
+
+                  <!-- Headline & Subtitle -->
+                  <h4 class="fw-bold mb-2">
+                    <a href="{% url 'posts:post_detail' post.slug %}" class="text-dark text-decoration-none">
+                      {{ post.title }}
+                    </a>
+                  </h4>
+                  {% if post.subtitle %}
+                    <p class="text-muted small mb-3 text-truncate-2">{{ post.subtitle }}</p>
+                  {% endif %}
+
+                  <!-- Metadata Details -->
+                  <div class="d-flex flex-wrap align-items-center justify-content-between text-muted small mt-2">
+                    <div class="d-flex align-items-center gap-2">
+                      <span>{{ post.published_at|date:"M d, Y" }}</span>
+                      <span>•</span>
+                      <span>{{ post.reading_time_minutes }} min read</span>
+                      {% if post.youtube_video_url %}
+                        <span class="badge text-bg-danger" style="font-size: 0.68rem;"><i class="bi bi-youtube me-1"></i>Video</span>
+                      {% endif %}
+                    </div>
+
+                    <div class="d-flex align-items-center gap-3">
+                      <span title="Total Views"><i class="bi bi-eye me-1"></i>{{ post.visit_count }}</span>
+                      <span title="Claps"><i class="bi bi-hand-thumbs-up me-1"></i>{{ post.total_claps_count }}</span>
+                      <span title="Comments"><i class="bi bi-chat me-1"></i>{{ post.total_comments_count }}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Story Thumbnail Cover -->
+                {% if post.featured_image %}
+                  <div class="col-md-4">
+                    <a href="{% url 'posts:post_detail' post.slug %}">
+                      <img src="{{ post.featured_image.url }}" alt="{{ post.title }}" class="img-fluid rounded-3" style="width: 100%; height: 130px; object-fit: cover;">
+                    </a>
+                  </div>
+                {% endif %}
+
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if is_paginated %}
+          <div class="d-flex justify-content-center py-5">
+            <nav>
+              <ul class="pagination pagination-sm">
+                {% if page_obj.has_previous %}
+                  <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&sort={{ current_sort }}">Previous</a></li>
+                {% endif %}
+                <li class="page-item active"><span class="page-link">{{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span></li>
+                {% if page_obj.has_next %}
+                  <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&sort={{ current_sort }}">Next</a></li>
+                {% endif %}
+              </ul>
+            </nav>
+          </div>
+        {% endif %}
+
+      {% else %}
+        <div class="p-5 text-center bg-light rounded-4">
+          <i class="bi bi-journal-text fs-1 text-muted mb-2"></i>
+          <h5 class="fw-bold text-dark">No Stories Found</h5>
+          <p class="text-muted small mb-0">No published articles match the current filter.</p>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Right Column: Sidebar Initiatives -->
+    <div class="col-lg-4 border-start-lg ps-lg-4">
+      <div class="sticky-top" style="top: 135px;">
+        
+        <!-- Author Call to Action -->
+        <div class="p-4 rounded-4 mb-4" style="background: var(--bscic-gradient-light); border: 1px solid rgba(26, 13, 129, 0.15);">
+          <h6 class="fw-bold" style="color: var(--bscic-primary);"><i class="bi bi-lightbulb me-2"></i>Contribute an Article</h6>
+          <p class="text-muted small mb-3">Share field research, cottage industry stories, or technology adoption updates with enterprise leaders.</p>
+          {% if user.is_authenticated %}
+            <a href="{% url 'posts:post_create' %}" class="btn-bscic btn-sm py-2 px-3 w-100">Draft a Story</a>
+          {% else %}
+            <a href="{% url 'accounts:login' %}" class="btn-bscic-outline btn-sm py-2 px-3 w-100">Sign in to Publish</a>
+          {% endif %}
+        </div>
+
+        <!-- Search Discovery Box -->
+        <div class="card border-0 shadow-sm p-3 rounded-4 mb-4">
+          <h6 class="fw-bold text-dark small text-uppercase mb-2">Search Knowledge Base</h6>
+          <form method="GET" action="{% url 'posts:search' %}">
+            <div class="input-group">
+              <input type="text" name="q" class="form-control bg-light border-0 small" placeholder="Search keywords..." required>
+              <button class="btn btn-light border-0 text-primary" type="submit"><i class="bi bi-search"></i></button>
+            </div>
+          </form>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock content %}

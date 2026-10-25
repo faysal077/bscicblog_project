@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+{% load static humanize %}
+
+{% block title %}Writer Stats & Readership Analytics | BSCIC Blog{% endblock title %}
+
+{% block content %}
+<div class="container-medium py-5">
+  
+  <!-- Dashboard Header -->
+  <div class="d-flex flex-wrap align-items-center justify-content-between border-bottom pb-3 mb-4 gap-2">
+    <div>
+      <div class="d-flex align-items-center gap-2">
+        <span class="badge-role">Author Intelligence</span>
+        <h3 class="fw-bold text-dark mb-0">Stats & Readership Overview</h3>
+      </div>
+      <p class="text-muted small mb-0 mt-1">Review reader engagement, completion rates, and traffic trends across your stories.</p>
+    </div>
+    
+    <div class="d-flex align-items-center gap-2">
+      <span class="badge bg-light text-dark border px-3 py-2">
+        <i class="bi bi-clock-history me-1"></i>Last 30 Days
+      </span>
+    </div>
+  </div>
+
+  <!-- Key Aggregate Performance Cards -->
+  <div class="row g-4 mb-5">
+    <div class="col-sm-6 col-lg-3">
+      <div class="card border-0 shadow-sm p-4 rounded-4 text-center">
+        <div class="text-muted small fw-semibold text-uppercase mb-1">Total Views</div>
+        <h2 class="fw-bold mb-0" style="color: var(--bscic-primary) !important;">{{ total_views|intcomma }}</h2>
+        <div class="text-muted small mt-1">Impressions & opens</div>
+      </div>
+    </div>
+
+    <div class="col-sm-6 col-lg-3">
+      <div class="card border-0 shadow-sm p-4 rounded-4 text-center">
+        <div class="text-muted small fw-semibold text-uppercase mb-1">Completed Reads</div>
+        <h2 class="fw-bold mb-0 text-dark">{{ total_reads|intcomma }}</h2>
+        <div class="text-muted small mt-1">&ge; 80% scroll depth</div>
+      </div>
+    </div>
+
+    <div class="col-sm-6 col-lg-3">
+      <div class="card border-0 shadow-sm p-4 rounded-4 text-center">
+        <div class="text-muted small fw-semibold text-uppercase mb-1">Read Ratio</div>
+        <h2 class="fw-bold mb-0 text-dark">{{ read_ratio }}%</h2>
+        <div class="text-muted small mt-1">Completion efficiency</div>
+      </div>
+    </div>
+
+    <div class="col-sm-6 col-lg-3">
+      <div class="card border-0 shadow-sm p-4 rounded-4 text-center">
+        <div class="text-muted small fw-semibold text-uppercase mb-1">Total Claps</div>
+        <h2 class="fw-bold mb-0 text-dark">{{ total_claps|intcomma }}</h2>
+        <div class="text-muted small mt-1">Community approvals</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 30-Day Trend Chart -->
+  <div class="card border-0 shadow-sm p-4 rounded-4 mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h5 class="fw-bold text-dark mb-0"><i class="bi bi-graph-up me-2 text-primary"></i>Daily Engagement Trajectory</h5>
+      <span class="small text-muted">Daily Views vs. Verified Reads</span>
+    </div>
+    <div style="height: 320px; position: relative;">
+      <canvas id="overviewChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Detailed Per-Story Performance Breakdown -->
+  <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+    <div class="card-header bg-white border-bottom p-3">
+      <h6 class="fw-bold text-dark mb-0">Story Performance Breakdown</h6>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light small text-uppercase">
+          <tr>
+            <th scope="col">Story Title</th>
+            <th scope="col" class="text-center">Published</th>
+            <th scope="col" class="text-center">Views</th>
+            <th scope="col" class="text-center">Reads</th>
+            <th scope="col" class="text-center">Read Ratio</th>
+            <th scope="col" class="text-center">Claps</th>
+            <th scope="col" class="text-end">Details</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for post in author_posts %}
+            <tr>
+              <td style="max-width: 280px;">
+                <a href="{% url 'posts:post_detail' post.slug %}" class="fw-semibold text-dark text-decoration-none d-block text-truncate">
+                  {{ post.title }}
+                </a>
+                <span class="text-muted small">{{ post.category.name|default:"General" }}</span>
+              </td>
+              <td class="text-center text-muted small">{{ post.published_at|date:"M d, Y"|default:"Draft" }}</td>
+              <td class="text-center font-monospace">{{ post.total_views_count }}</td>
+              <td class="text-center font-monospace">{{ post.total_reads_count }}</td>
+              <td class="text-center">
+                {% if post.total_views_count > 0 %}
+                  <span class="badge bg-light text-dark border">
+                    {% widthratio post.total_reads_count post.total_views_count 100 %}%
+                  </span>
+                {% else %}
+                  <span class="badge bg-light text-muted">0%</span>
+                {% endif %}
+              </td>
+              <td class="text-center font-monospace">{{ post.total_claps_count }}</td>
+              <td class="text-end">
+                <a href="{% url 'analytics:post_stats' post.id %}" class="btn-bscic-outline py-1 px-3 small">
+                  Deep Dive
+                </a>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="7" class="text-center py-5 text-muted">
+                <i class="bi bi-bar-chart-line fs-2 text-muted d-block mb-2"></i>
+                No metrics accumulated yet. Publish stories to track reader engagement.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock content %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const ctx = document.getElementById("overviewChart").getContext("2d");
+    const dates = JSON.parse('{{ daily_dates_json|default:"[]"|escapejs }}');
+    const viewsData = JSON.parse('{{ daily_views_json|default:"[]"|escapejs }}');
+    const readsData = JSON.parse('{{ daily_reads_json|default:"[]"|escapejs }}');
+
+    new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: dates,
+        datasets: [
+          {
+            label: "Views",
+            data: viewsData,
+            borderColor: "rgba(42, 25, 181, 0.4)",
+            backgroundColor: "rgba(42, 25, 181, 0.05)",
+            tension: 0.35,
+            fill: true,
+            pointRadius: 2
+          },
+          {
+            label: "Completed Reads",
+            data: readsData,
+            borderColor: "#1A0D81",
+            backgroundColor: "rgba(26, 13, 129, 0.2)",
+            tension: 0.35,
+            fill: true,
+            pointRadius: 2
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: "top" }
+        },
+        scales: {
+          y: { beginAtZero: true }
+        }
+      }
+    });
+  });
+</script>
+{% endblock extra_js %}

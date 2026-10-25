@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% load static humanize %}
+
+{% block title %}My Library & Reading Lists | BSCIC Blog{% endblock title %}
+
+{% block content %}
+<div class="container-medium py-5">
+  <div class="row g-5">
+    
+    <!-- Left Column: User Lists Stream -->
+    <div class="col-lg-8">
+      <div class="d-flex align-items-center justify-content-between border-bottom pb-3 mb-4">
+        <div>
+          <h3 class="fw-bold text-dark mb-0">Your Library</h3>
+          <p class="text-muted small mb-0">Organize policy briefings, guides, and articles into personal collections.</p>
+        </div>
+        <button class="btn-bscic btn-sm py-2 px-3" data-bs-toggle="modal" data-bs-target="#createListModal">
+          <i class="bi bi-plus-lg me-1"></i> New List
+        </button>
+      </div>
+
+      {% if reading_lists %}
+        <div class="d-flex flex-column gap-3">
+          {% for rlist in reading_lists %}
+            <div class="card border-0 shadow-sm p-4 rounded-4" style="background: #FAFAFA;">
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                  <h5 class="fw-bold mb-1">
+                    <a href="{% url 'interactions:reading_list_detail' rlist.id %}" class="text-dark text-decoration-none">
+                      {{ rlist.title }}
+                    </a>
+                  </h5>
+                  <p class="text-muted small mb-2">{{ rlist.description|default:"Personal collection of saved stories." }}</p>
+                </div>
+                {% if rlist.is_private %}
+                  <span class="badge bg-secondary-subtle text-secondary small"><i class="bi bi-lock-fill me-1"></i>Private</span>
+                {% else %}
+                  <span class="badge bg-success-subtle text-success small"><i class="bi bi-globe me-1"></i>Public</span>
+                {% endif %}
+              </div>
+
+              <div class="d-flex align-items-center justify-content-between text-muted small mt-2 pt-2 border-top">
+                <span>{{ rlist.total_items|default:rlist.items.count }} article{{ rlist.total_items|default:rlist.items.count|pluralize }} saved</span>
+                <span>Created {{ rlist.created_at|date:"M d, Y" }}</span>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="p-5 text-center bg-light rounded-4">
+          <i class="bi bi-bookmarks text-muted fs-1 mb-2"></i>
+          <h5 class="fw-bold text-dark">Your Library is Empty</h5>
+          <p class="text-muted small mb-3">Save articles while reading to build personal research collections.</p>
+          <button class="btn-bscic btn-sm py-2 px-3" data-bs-toggle="modal" data-bs-target="#createListModal">
+            Create First Reading List
+          </button>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Right Column: Sidebar Guidelines -->
+    <div class="col-lg-4 border-start-lg ps-lg-4">
+      <div class="sticky-top" style="top: 85px;">
+        <div class="card border-0 p-4 bg-light rounded-4 mb-4">
+          <h6 class="fw-bold text-dark mb-2"><i class="bi bi-bookmark-star text-primary me-2"></i>Reading List Usage</h6>
+          <p class="text-muted small mb-0" style="line-height: 1.6;">
+            Save articles directly by clicking the bookmark icon on any story. Private collections remain visible only to you, while public lists can be shared with team members.
+          </p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Modal: Create New Reading List -->
+<div class="modal fade" id="createListModal" tabindex="-1" aria-labelledby="createListModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow rounded-4">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold" id="createListModalLabel">Create Reading List</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="POST" action="{% url 'interactions:create_reading_list' %}">
+        {% csrf_token %}
+        <div class="modal-body py-3">
+          <div class="mb-3">
+            <label class="form-label small fw-semibold text-muted">Title *</label>
+            <input type="text" name="title" class="form-control" placeholder="e.g., Agro Processing Policies" required maxlength="150">
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold text-muted">Description (optional)</label>
+            <textarea name="description" class="form-control" rows="2" placeholder="Brief note on this collection..." maxlength="300"></textarea>
+          </div>
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" name="is_private" id="isPrivateCheck" checked>
+            <label class="form-check-label small text-muted" for="isPrivateCheck">Keep list private</label>
+          </div>
+        </div>
+        <div class="modal-footer border-0 pt-0">
+          <button type="button" class="btn btn-sm btn-light border py-1 px-3" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn-bscic btn-sm py-1 px-3">Create List</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock content %}

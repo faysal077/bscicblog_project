@@ -1,0 +1,41 @@
+<div class="d-inline-flex align-items-center gap-2">
+  <button 
+    class="btn rounded-circle d-flex align-items-center justify-content-center p-0 border shadow-sm clap-interactive-btn" 
+    id="clap-button-{{ post.id }}" 
+    style="width: 44px; height: 44px; background: var(--bscic-gradient-light); transition: transform 0.15s ease;"
+    onclick="handleClapAction('{{ post.id }}')"
+    title="Clap for this story (up to 50 times)"
+  >
+    <i class="bi bi-hand-thumbs-up-fill fs-5" style="color: var(--bscic-primary);"></i>
+  </button>
+  
+  <span class="fw-bold text-dark fs-6" id="clap-counter-{{ post.id }}">
+    {{ post.total_claps_count|default:"0" }}
+  </span>
+</div>
+
+<script>
+  function handleClapAction(postId) {
+    const btn = document.getElementById(`clap-button-${postId}`);
+    const counter = document.getElementById(`clap-counter-${postId}`);
+
+    btn.style.transform = "scale(1.2)";
+    setTimeout(() => { btn.style.transform = "scale(1)"; }, 150);
+
+    fetch(`/interactions/posts/${postId}/clap/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": "{{ csrf_token }}"
+      },
+      body: JSON.stringify({ claps_to_add: 1 })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        counter.textContent = data.total_post_claps;
+      }
+    })
+    .catch(err => console.error("Clap submission error:", err));
+  }
+</script>

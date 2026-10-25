@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Sign In | BSCIC Blog{% endblock title %}
+
+{% block content %}
+<div class="container-medium py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+      <div class="card border-0 shadow-sm p-4 p-md-5" style="border-radius: 16px;">
+        
+        <div class="text-center mb-4">
+          <div class="d-inline-flex align-items-center justify-content-center mb-3" style="width: 48px; height: 48px; background: var(--bscic-gradient); border-radius: 12px;">
+            <i class="bi bi-box-arrow-in-right text-white fs-4"></i>
+          </div>
+          <h3 class="fw-bold text-dark">Welcome Back</h3>
+          <p class="text-muted small">Sign in to read, publish, and engage with the BSCIC industrial community.</p>
+        </div>
+
+        <form method="POST" novalidate>
+          {% csrf_token %}
+
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger py-2 small mb-3">
+              {% for error in form.non_field_errors %}
+                <div>{{ error }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          <div class="mb-3">
+            <label for="id_username" class="form-label small fw-semibold text-muted">Email Address</label>
+            <div class="input-group">
+              <span class="input-group-text bg-light border-0"><i class="bi bi-envelope text-muted"></i></span>
+              {{ form.username }}
+            </div>
+            {% if form.username.errors %}
+              <div class="text-danger small mt-1">{{ form.username.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <label for="id_password" class="form-label small fw-semibold text-muted mb-0">Password</label>
+            </div>
+            <div class="input-group">
+              <span class="input-group-text bg-light border-0"><i class="bi bi-lock text-muted"></i></span>
+              {{ form.password }}
+            </div>
+            {% if form.password.errors %}
+              <div class="text-danger small mt-1">{{ form.password.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <button type="submit" class="btn-bscic w-100 py-2 mb-3">Sign In</button>
+        </form>
+
+        <div class="text-center mt-3 pt-3 border-top">
+          <span class="text-muted small">Don't have an account?</span>
+          <a href="{% url 'accounts:register' %}" class="small fw-bold ms-1" style="color: var(--bscic-primary);">Create one</a>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}

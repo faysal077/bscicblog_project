@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ reading_list.title }} | BSCIC Library{% endblock title %}
+
+{% block content %}
+<div class="container-medium py-5">
+  
+  <!-- Collection Top Header -->
+  <div class="d-flex flex-wrap align-items-center justify-content-between border-bottom pb-4 mb-5 gap-3">
+    <div>
+      <div class="d-flex align-items-center gap-2 mb-2">
+        <a href="{% url 'interactions:reading_lists' %}" class="small text-muted text-decoration-none">
+          <i class="bi bi-arrow-left me-1"></i>Back to Library
+        </a>
+        <span class="text-muted small">•</span>
+        {% if reading_list.is_private %}
+          <span class="badge bg-secondary-subtle text-secondary small"><i class="bi bi-lock-fill me-1"></i>Private</span>
+        {% else %}
+          <span class="badge bg-success-subtle text-success small"><i class="bi bi-globe me-1"></i>Public</span>
+        {% endif %}
+      </div>
+      <h2 class="fw-bold text-dark mb-1">{{ reading_list.title }}</h2>
+      <p class="text-muted small mb-0">{{ reading_list.description|default:"Curated article collection." }}</p>
+    </div>
+
+    <div class="text-muted small">
+      <strong>{{ bookmark_items|length }}</strong> saved stor{{ bookmark_items|length|pluralize:"y,ies" }}
+    </div>
+  </div>
+
+  <div class="row g-5">
+    <div class="col-lg-8">
+      {% if bookmark_items %}
+        <div class="d-flex flex-column gap-4">
+          {% for item in bookmark_items %}
+            {% with post=item.post %}
+              <article class="card border-0 border-bottom pb-4" id="bookmark-row-{{ item.id }}" style="border-radius: 0;">
+                <div class="row g-4 align-items-center">
+                  
+                  <div class="col-md-8">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                      <span class="small fw-semibold text-dark">{{ post.author.full_name|default:post.author.username }}</span>
+                      {% if post.category %}
+                        <span class="text-muted small">in</span>
+                        <span class="badge bg-light text-dark border">{{ post.category.name }}</span>
+                      {% endif %}
+                      <span class="text-muted small">• {{ post.published_at|date:"M d, Y" }}</span>
+                    </div>
+
+                    <h5 class="fw-bold mb-1">
+                      <a href="{% url 'posts:post_detail' post.slug %}" class="text-dark text-decoration-none">
+                        {{ post.title }}
+                      </a>
+                    </h5>
+                    {% if post.subtitle %}
+                      <p class="text-muted small mb-2 text-truncate">{{ post.subtitle }}</p>
+                    {% endif %}
+
+                    <div class="d-flex align-items-center justify-content-between text-muted small mt-2">
+                      <span>{{ post.reading_time_minutes }} min read</span>
+                      
+                      {% if request.user == reading_list.user %}
+                        <button class="btn btn-sm btn-outline-danger border-0 p-1" onclick="removeBookmarkItem('{{ item.id }}')" title="Remove from list">
+                          <i class="bi bi-trash3 me-1"></i>Remove
+                        </button>
+                      {% endif %}
+                    </div>
+                  </div>
+
+                  {% if post.featured_image %}
+                    <div class="col-md-4">
+                      <img src="{{ post.featured_image.url }}" alt="{{ post.title }}" class="img-fluid rounded-4" style="width: 100%; height: 110px; object-fit: cover;">
+                    </div>
+                  {% endif %}
+
+                </div>
+              </article>
+            {% endwith %}
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="text-center py-5 bg-light rounded-4">
+          <i class="bi bi-bookmark-dash text-muted fs-1 mb-2"></i>
+          <h5 class="fw-bold text-dark">No Stories in This List</h5>
+          <p class="text-muted small mb-3">Browse articles and click the bookmark button to save them here.</p>
+          <a href="{% url 'posts:post_list' %}" class="btn-bscic btn-sm py-2 px-3">Explore Stories</a>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Right Column: Curator Box -->
+    <div class="col-lg-4 border-start-lg ps-lg-4">
+      <div class="card border-0 p-4 bg-light rounded-4">
+        <h6 class="fw-bold text-dark small text-uppercase mb-3">Curated By</h6>
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <div class="rounded-circle d-flex align-items-center justify-content-center text-white" style="width: 36px; height: 36px; background: var(--bscic-gradient); font-size: 0.9rem; font-weight: 700;">
+            {{ reading_list.user.username|slice:":1"|upper }}
+          </div>
+          <div>
+            <div class="small fw-semibold text-dark">{{ reading_list.user.full_name|default:reading_list.user.username }}</div>
+            <div class="text-muted" style="font-size: 0.72rem;">@{{ reading_list.user.username }}</div>
+          </div>
+        </div>
+        <div class="small text-muted mt-2 pt-2 border-top">Created on {{ reading_list.created_at|date:"F d, Y" }}</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock content %}
+
+{% block extra_js %}
+<script>
+  function removeBookmarkItem(itemId) {
+    if (!confirm("Remove this article from your list?")) return;
+
+    fetch(`/interactions/bookmarks/${itemId}/delete/`, {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": "{{ csrf_token }}"
+      }
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        const row = document.getElementById(`bookmark-row-${itemId}`);
+        if (row) row.remove();
+      }
+    });
+  }
+</script>
+{% endblock extra_js %}

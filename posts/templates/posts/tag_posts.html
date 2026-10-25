@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Stories on #{{ tag.name }} | BSCIC Blog{% endblock title %}
+
+{% block content %}
+<div class="container-medium py-5">
+  
+  <!-- Topic Header -->
+  <div class="d-flex align-items-center gap-3 border-bottom pb-4 mb-5">
+    <div class="d-flex align-items-center justify-content-center text-white rounded-circle shadow-sm" style="width: 60px; height: 60px; background: var(--bscic-gradient); font-size: 1.6rem; font-weight: 800;">
+      #
+    </div>
+    <div>
+      <h2 class="fw-bold text-dark mb-0">{{ tag.name }}</h2>
+      <div class="text-muted small mt-1">{{ posts|length }} published article{{ posts|length|pluralize }}</div>
+    </div>
+  </div>
+
+  <div class="row g-5">
+    <div class="col-lg-8">
+      {% if posts %}
+        <div class="d-flex flex-column gap-4">
+          {% for post in posts %}
+            <article class="card border-0 border-bottom pb-4" style="border-radius: 0;">
+              <div class="row g-4 align-items-center">
+                
+                <div class="col-md-8">
+                  <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="small text-dark fw-semibold">{{ post.author.full_name|default:post.author.username }}</span>
+                    <span class="text-muted small">• {{ post.published_at|date:"M d, Y" }}</span>
+                  </div>
+
+                  <h5 class="fw-bold mb-1">
+                    <a href="{% url 'posts:post_detail' post.slug %}" class="text-dark text-decoration-none">{{ post.title }}</a>
+                  </h5>
+                  {% if post.subtitle %}
+                    <p class="text-muted small mb-2 text-truncate">{{ post.subtitle }}</p>
+                  {% endif %}
+
+                  <div class="d-flex align-items-center gap-3 text-muted small mt-2">
+                    <span>{{ post.reading_time_minutes }} min read</span>
+                    <span><i class="bi bi-eye me-1"></i>{{ post.visit_count }}</span>
+                  </div>
+                </div>
+
+                {% if post.featured_image %}
+                  <div class="col-md-4">
+                    <img src="{{ post.featured_image.url }}" alt="{{ post.title }}" class="img-fluid rounded-3" style="width: 100%; height: 110px; object-fit: cover;">
+                  </div>
+                {% endif %}
+
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="p-5 text-center bg-light rounded-4">
+          <p class="text-muted mb-0">No stories found under #{{ tag.name }}.</p>
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="col-lg-4 border-start-lg ps-lg-4">
+      <div class="card border-0 p-4 bg-light rounded-4">
+        <h6 class="fw-bold text-dark mb-2">About #{{ tag.name }}</h6>
+        <p class="small text-muted mb-0">Curated industrial policies, cottage craftsmanship, and entrepreneurship briefs matching this classification.</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock content %}

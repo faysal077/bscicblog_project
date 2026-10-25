@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}BSCIC Officer Directory | BSCIC Blog{% endblock title %}
+
+{% block content %}
+<div class="container-medium py-5">
+  
+  <div class="d-flex flex-wrap align-items-center justify-content-between border-bottom pb-3 mb-4 gap-2">
+    <div>
+      <div class="d-flex align-items-center gap-2">
+        <span class="badge-role">Staff Intranet</span>
+        <h3 class="fw-bold text-dark mb-0">Officer & Editorial Directory</h3>
+      </div>
+      <p class="text-muted small mb-0 mt-1">Official registry of BSCIC officers, publication editors, and contributors.</p>
+    </div>
+    
+    <div class="d-flex align-items-center gap-2">
+      <span class="text-muted small">{{ officers|length }} members listed</span>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    {% for officer in officers %}
+      <div class="col-md-6 col-lg-4">
+        <div class="card h-100 border-0 shadow-sm p-3" style="border-radius: 12px; transition: transform 0.2s ease;">
+          <div class="d-flex align-items-start gap-3">
+            
+            {% if officer.avatar %}
+              <img src="{{ officer.avatar.url }}" alt="{{ officer.username }}" class="rounded-circle border" style="width: 56px; height: 56px; object-fit: cover;">
+            {% else %}
+              <div class="rounded-circle d-flex align-items-center justify-content-center text-white" style="width: 56px; height: 56px; min-width: 56px; background: var(--bscic-gradient); font-weight: 700; font-size: 1.2rem;">
+                {{ officer.username|slice:":1"|upper }}
+              </div>
+            {% endif %}
+
+            <div class="flex-grow-1 overflow-hidden">
+              <h6 class="fw-bold mb-0 text-dark text-truncate">
+                <a href="{% url 'accounts:profile_detail' officer.username %}" class="text-dark text-decoration-none">
+                  {{ officer.full_name|default:officer.username }}
+                </a>
+              </h6>
+              
+              <div class="text-muted small text-truncate mb-1">
+                {{ officer.designation|default:"BSCIC Staff" }}
+              </div>
+
+              {% if officer.department %}
+                <div class="text-muted small text-truncate mb-2" style="font-size: 0.78rem;">
+                  <i class="bi bi-geo-alt me-1"></i>{{ officer.department }}
+                </div>
+              {% endif %}
+
+              <div class="d-flex align-items-center justify-content-between pt-2 border-top mt-2">
+                <span class="badge-role" style="font-size: 0.68rem;">{{ officer.get_role_display }}</span>
+                <a href="mailto:{{ officer.email }}" class="text-muted small" title="Contact Email">
+                  <i class="bi bi-envelope"></i>
+                </a>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    {% empty %}
+      <div class="col-12 text-center py-5">
+        <i class="bi bi-people text-muted fs-1 mb-2"></i>
+        <p class="text-muted">No officers found in the directory.</p>
+      </div>
+    {% endfor %}
+  </div>
+
+</div>
+{% endblock content %}

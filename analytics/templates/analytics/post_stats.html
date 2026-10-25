@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+{% load static humanize %}
+
+{% block title %}Story Metrics: {{ post.title }} | BSCIC Blog{% endblock title %}
+
+{% block content %}
+<div class="container-medium py-5">
+  
+  <!-- Back Navigation -->
+  <div class="mb-4">
+    <a href="{% url 'analytics:dashboard' %}" class="small text-muted text-decoration-none">
+      <i class="bi bi-arrow-left me-1"></i>Back to Overview
+    </a>
+  </div>
+
+  <div class="d-flex flex-wrap align-items-center justify-content-between border-bottom pb-3 mb-4 gap-3">
+    <div>
+      <span class="badge-role">Single Story Breakdown</span>
+      <h3 class="fw-bold text-dark mt-2 mb-1">{{ post.title }}</h3>
+      <p class="text-muted small mb-0">Published {{ post.published_at|date:"F d, Y"|default:"Draft" }} • {{ post.reading_time_minutes }} min read</p>
+    </div>
+    <div>
+      <a href="{% url 'posts:post_detail' post.slug %}" class="btn-bscic-outline btn-sm py-2 px-3">
+        <i class="bi bi-eye me-1"></i>View Story
+      </a>
+    </div>
+  </div>
+
+  <!-- KPI Metrics Cards -->
+  <div class="row g-4 mb-5">
+    <div class="col-sm-6 col-lg-3">
+      <div class="card border-0 shadow-sm p-4 rounded-4 text-center">
+        <div class="text-muted small fw-semibold text-uppercase mb-1">Total Views</div>
+        <h2 class="fw-bold mb-0 text-dark">{{ post.total_views_count|intcomma }}</h2>
+        <div class="text-muted small mt-1">Impressions & opens</div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+      <div class="card border-0 shadow-sm p-4 rounded-4 text-center">
+        <div class="text-muted small fw-semibold text-uppercase mb-1">Completed Reads</div>
+        <h2 class="fw-bold mb-0" style="color: var(--bscic-primary);">{{ post.total_reads_count|intcomma }}</h2>
+        <div class="text-muted small mt-1">&ge; 80% scroll depth</div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+      <div class="card border-0 shadow-sm p-4 rounded-4 text-center">
+        <div class="text-muted small fw-semibold text-uppercase mb-1">Read Ratio</div>
+        <h2 class="fw-bold mb-0 text-dark">
+          {% if post.total_views_count > 0 %}
+            {% widthratio post.total_reads_count post.total_views_count 100 %}%
+          {% else %}
+            0%
+          {% endif %}
+        </h2>
+        <div class="text-muted small mt-1">Completion rate</div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+      <div class="card border-0 shadow-sm p-4 rounded-4 text-center">
+        <div class="text-muted small fw-semibold text-uppercase mb-1">Claps</div>
+        <h2 class="fw-bold mb-0 text-dark">{{ post.total_claps_count|intcomma }}</h2>
+        <div class="text-muted small mt-1">Reader endorsements</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bar Chart: Views vs. Reads -->
+  <div class="card border-0 shadow-sm p-4 rounded-4 mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h5 class="fw-bold text-dark mb-0">Daily Views & Completed Reads</h5>
+      <span class="small text-muted">Last 15 Days</span>
+    </div>
+    <div style="height: 300px; position: relative;">
+      <canvas id="postDetailChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Traffic Referrer Sources Table -->
+  <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+    <div class="card-header bg-white border-bottom p-3">
+      <h6 class="fw-bold text-dark mb-0"><i class="bi bi-signpost-split me-2 text-primary"></i>Top Referral Sources</h6>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light small text-uppercase">
+          <tr>
+            <th>Referrer Source</th>
+            <th class="text-center">Events Logged</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for ref in top_referrers %}
+            <tr>
+              <td class="fw-semibold text-dark">{{ ref.referrer }}</td>
+              <td class="text-center font-monospace">{{ ref.count }}</td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="2" class="text-center py-4 text-muted small">
+                No external referrer information logged yet. Most visits are direct or via platform feeds.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock content %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    fetch("{% url 'analytics:post_stats_api' post.id %}")
+      .then(res => res.json())
+      .then(data => {
+        const labels = data.daily_breakdown.map(item => item.date);
+        const views = data.daily_breakdown.map(item => item.total_views);
+        const reads = data.daily_breakdown.map(item => item.total_reads);
+
+        const ctx = document.getElementById("postDetailChart").getContext("2d");
+        new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: "Views",
+                data: views,
+                backgroundColor: "rgba(42, 25, 181, 0.3)",
+                borderRadius: 4
+              },
+              {
+                label: "Completed Reads",
+                data: reads,
+                backgroundColor: "#1A0D81",
+                borderRadius: 4
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: { beginAtZero: true }
+            }
+          }
+        });
+      })
+      .catch(err => console.error("Could not load stats payload", err));
+  });
+</script>
+{% endblock extra_js %}

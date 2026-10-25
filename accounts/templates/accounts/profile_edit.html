@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Edit Profile | BSCIC Blog{% endblock title %}
+
+{% block content %}
+<div class="container-medium py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      
+      <div class="d-flex align-items-center justify-content-between border-bottom pb-3 mb-4">
+        <div>
+          <h3 class="fw-bold text-dark mb-0">Public Profile</h3>
+          <p class="text-muted small mb-0">Manage how your identity appears across BSCIC publications and articles.</p>
+        </div>
+        <a href="{% url 'accounts:profile_detail' user.username %}" class="btn-bscic-outline py-1 px-3 small">View Profile</a>
+      </div>
+
+      <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="card border-0 shadow-sm p-4 mb-4" style="border-radius: 12px;">
+          <h5 class="fw-bold text-dark mb-3">Personal & Departmental Info</h5>
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold text-muted">Full Name</label>
+            {{ form.full_name }}
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold text-muted">Designation</label>
+              {{ form.designation }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold text-muted">Department / Regional Estate</label>
+              {{ form.department }}
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold text-muted">Short Bio</label>
+            {{ form.bio }}
+            <div class="form-text small">Brief summary of your background and areas of interest (max 500 characters).</div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold text-muted">Website or Profile Link</label>
+            {{ form.website_url }}
+          </div>
+
+          <div class="mb-2">
+            <label class="form-label small fw-semibold text-muted">Profile Avatar</label>
+            {% if user.avatar %}
+              <div class="mb-2">
+                <img src="{{ user.avatar.url }}" alt="{{ user.username }}" class="rounded-circle border" style="width: 50px; height: 50px; object-fit: cover;">
+              </div>
+            {% endif %}
+            {{ form.avatar }}
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2">
+          <a href="{% url 'accounts:profile_detail' user.username %}" class="btn-bscic-outline py-2 px-4">Cancel</a>
+          <button type="submit" class="btn-bscic py-2 px-4">Save Changes</button>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+</div>
+{% endblock content %}
