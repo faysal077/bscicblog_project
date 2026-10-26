@@ -1,5 +1,10 @@
 from django.shortcuts import render
-
+import re
+from django.shortcuts import get_object_or_404
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from deep_translator import GoogleTranslator
+from .models import Post
 # Create your views here.
 import json
 from django.shortcuts import render, get_object_or_404, redirect
@@ -269,3 +274,52 @@ def upload_inline_image(request):
             "id": asset.id
         }
     })
+def is_predominantly_bangla(text):
+    """Detects whether text contains mostly Bengali characters."""
+    clean_text = re.sub(r'<[^>]+>', '', text or '')
+    bangla_chars = len(re.findall(r'[\u0980-\u09FF]', clean_text))
+    return bangla_chars > (len(clean_text) * 0.2)
+
+
+@require_POST
+def translate_post_content(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+
+    # 1. Determine base language if not yet set
+    if not post.detected_language:
+        sample_text = f"{post.title} {post.content_html}"
+        post.detected_language = 'bn' if is_predominantly_bangla(sample_text) else 'en'
+        post.save(update_fields=['detected_language'])
+
+    # 2. Determine target language
+    source_lang = post.detected_language
+    target_lang = 'en' if source_lang == 'bn' else 'bn'
+
+    # 3. Check cached translations
+    if post.translated_content_html and post.translated_title:
+        return JsonResponse({
+            'success': True,
+            'title': post.translated_title,
+            'content_html': post.translated_content_html,
+            'target_lang': target_lang
+        })
+
+    # 4. Perform live translation
+    try:
+        translator = GoogleTranslator(source=source_lang, target=target_lang)
+        translated_title = translator.translate(post.title)
+        translated_html = translator.translate(post.content_html)
+
+        # Cache translations
+        post.translated_title = translated_title
+        post.translated_content_html = translated_html
+        post.save(update_fields=['translated_title', 'translated_content_html'])
+
+        return JsonResponse({
+            'success': True,
+            'title': translated_title,
+            'content_html': translated_html,
+            'target_lang': target_lang
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)

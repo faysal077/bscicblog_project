@@ -69,7 +69,9 @@ class Post(models.Model):
     title = models.CharField(_("title"), max_length=255)
     subtitle = models.CharField(_("subtitle"), max_length=300, blank=True)
     slug = models.SlugField(_("slug"), max_length=280, unique=True, db_index=True)
-    
+    translated_title = models.CharField(max_length=255, blank=True, null=True)
+    translated_content_html = models.TextField(blank=True, null=True)
+    detected_language = models.CharField(max_length=10, blank=True, null=True) # 'bn' or 'en'
     author = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,

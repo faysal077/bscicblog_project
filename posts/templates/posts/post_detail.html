@@ -235,5 +235,70 @@
       }
     });
   }
+
+  let isTranslated = false;
+  const originalTitle = document.getElementById("story-title").innerHTML;
+  const originalContent = document.getElementById("story-content").innerHTML;
+  const originalClass = document.getElementById("story-content").className;
+
+  function toggleLanguage() {
+    const titleEl = document.getElementById("story-title");
+    const contentEl = document.getElementById("story-content");
+    const btnLabel = document.getElementById("translate-label");
+    const btn = document.getElementById("translate-btn");
+
+    if (isTranslated) {
+      // Revert to original text and original font
+      titleEl.innerHTML = originalTitle;
+      contentEl.innerHTML = originalContent;
+      titleEl.className = originalClass;
+      contentEl.className = originalClass;
+      btnLabel.textContent = "Translate / অনুবাদ";
+      isTranslated = false;
+      return;
+    }
+
+    // Show loading indicator
+    btnLabel.textContent = "Translating...";
+    btn.disabled = true;
+
+    fetch("{% url 'posts:translate_post' post.id %}", {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": getCsrfToken(),
+        "Content-Type": "application/json"
+      }
+    })
+    .then(res => res.json())
+    .then(data => {
+      btn.disabled = false;
+      if (data.success) {
+        titleEl.innerHTML = data.title;
+        contentEl.innerHTML = data.content_html;
+
+        // Apply corresponding font family
+        if (data.target_lang === "bn") {
+          // Target is Bangla -> use Nikosh
+          titleEl.className = "fw-bolder display-5 text-dark mb-3 font-bangla";
+          contentEl.className = "article-content mb-5 font-bangla";
+          btnLabel.textContent = "Show English Original";
+        } else {
+          // Target is English -> use Times New Roman
+          titleEl.className = "fw-bolder display-5 text-dark mb-3 font-english";
+          contentEl.className = "article-content mb-5 font-english";
+          btnLabel.textContent = "মূল বাংলা দেখুন (Show Bangla Original)";
+        }
+        isTranslated = true;
+      } else {
+        alert("Translation could not be completed.");
+        btnLabel.textContent = "Translate / অনুবাদ";
+      }
+    })
+    .catch(err => {
+      btn.disabled = false;
+      btnLabel.textContent = "Translate / অনুবাদ";
+      console.error("Translation error:", err);
+    });
+  }
 </script>
 {% endblock extra_js %}

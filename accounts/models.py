@@ -41,7 +41,7 @@ class User(AbstractUser):
         SUPER_ADMIN = "super_admin", _("Super Administrator")
         BSCIC_OFFICER = "bscic_officer", _("BSCIC Officer")
         EDITOR = "editor", _("Publication Editor")
-        WRITER = "writer", _("Staff Writer / Contributor")
+        WRITER = "writer", _("Contributor")
         READER = "reader", _("General Reader")
 
     email = models.EmailField(_("email address"), unique=True)

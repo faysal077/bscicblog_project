@@ -19,4 +19,6 @@ urlpatterns = [
     # Story Details & Edit (Kept at bottom to prevent slug collisions)
     path("<slug:slug>/", views.PostDetailView.as_view(), name="post_detail"),
     path("<slug:slug>/edit/", views.post_edit, name="post_edit"),
+    # Translation API Endpoint
+    path('<int:post_id>/translate/', views.translate_post_content, name='translate_post'),
 ]
